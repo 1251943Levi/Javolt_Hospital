@@ -1,8 +1,6 @@
 package Entidades;
 
 public class Paciente {
-    public class Paciente {
-
         private String nome;
         private String nivelUrgencia;
         private String especialidadeDesejada;
@@ -35,4 +33,4 @@ public class Paciente {
             tempoEspera++;
         }
     }
-}
+

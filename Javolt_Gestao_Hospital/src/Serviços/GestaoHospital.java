@@ -1,54 +1,195 @@
 package Serviços;
 
-import Entidades.Medico;
-import Entidades.Paciente;
-import Ficheiros.GestorFicheiros;
-import Ficheiros.LeitorFicheiros;
+import Entidades.*;
+import Ficheiros.*;
+import UI.InputsAuxiliares;
 
 public class GestaoHospital {
 
-// ================== GESTAO DOS FICHEIROS ==================
+    // ================== ATRIBUTOS ==================
     private Medico[] medicos;
     private Paciente[] pacientes;
+    private Consulta[] consultas;
     private Sintoma[] sintomas;
     private Especialidade[] especialidades;
 
     private LeitorFicheiros leitor;
     private GestorFicheiros gestor;
 
+    private int totalMedicos;
+    private int totalPacientes;
+    private int totalConsultas;
+
     // ================== CONSTRUTOR ==================
     public GestaoHospital() {
+
+        medicos = new Medico[100];
+        pacientes = new Paciente[200];
+        consultas = new Consulta[100];
+
+        totalMedicos = 0;
+        totalPacientes = 0;
+        totalConsultas = 0;
 
         leitor = new LeitorFicheiros(";");
         gestor = new GestorFicheiros(";");
 
         especialidades = leitor.lerEspecialidades("especialidades.txt");
         medicos = leitor.lerMedicos("medicos.txt");
-        sintomas = leitor.lerSintomas("sintomas.txt");
+        sintomas = leitor.lerSintomas("sintomas.txt", especialidades);
+
+        totalMedicos = 0;
+        for (Medico m : medicos) {
+            if (m != null) totalMedicos++;
+        }
 
         gestor.escreverLog("logs.txt", "Sistema iniciado com sucesso");
     }
 
-    public void listarMedicos() {
+    // ================== MÉDICOS ==================
+    public boolean adicionarMedico(Medico m) {
+        if (totalMedicos >= medicos.length) return false;
+        medicos[totalMedicos++] = m;
+        return true;
+    }
 
-        if (medicos == null || medicos.length == 0) {
-            System.out.println("Não existem médicos carregados.");
+    public void listarMedicos() {
+        if (totalMedicos == 0) {
+            System.out.println("Não existem médicos registados.");
             return;
         }
 
-        System.out.println("=== LISTA DE MÉDICOS ===");
-
-        for (int i = 0; i < medicos.length; i++) {
-            System.out.println(medicos[i]); // usa o toString()
+        for (int i = 0; i < totalMedicos; i++) {
+            System.out.println(medicos[i]);
         }
     }
 
+    public Medico procurarMedicoPorEspecialidade(String especialidade) {
+        for (int i = 0; i < totalMedicos; i++) {
+            if (medicos[i].getEspecialidade().equalsIgnoreCase(especialidade)
+                    && medicos[i].isDisponivel()) {
+                return medicos[i];
+            }
+        }
+        return null;
+    }
+
+    // ================== PACIENTES ==================
+    public boolean adicionarPaciente(Paciente p) {
+        if (totalPacientes >= pacientes.length) return false;
+        pacientes[totalPacientes++] = p;
+        return true;
+    }
+
+    public void listarPacientes() {
+        if (totalPacientes == 0) {
+            System.out.println("Não existem pacientes registados.");
+            return;
+        }
+
+        for (int i = 0; i < totalPacientes; i++) {
+            System.out.println(pacientes[i]);
+        }
+    }
+
+    public void registarPaciente() {
+        String nome = InputsAuxiliares.lerString("Nome do paciente: ");
+        Paciente p = new Paciente(nome);
+
+        if (adicionarPaciente(p)) {
+            System.out.println("Paciente registado com sucesso.");
+        } else {
+            System.out.println("Lista de pacientes cheia.");
+        }
+    }
+
+    // ================== CONSULTAS ==================
+    public boolean criarConsulta(Medico medico, Paciente paciente, int tempoConsulta) {
+        if (totalConsultas >= consultas.length) return false;
+
+        Consulta c = new Consulta(medico, paciente, tempoConsulta);
+        consultas[totalConsultas++] = c;
+
+        medico.setDisponivel(false);
+        paciente.setEmAtendimento(true);
+
+        gestor.escreverLog("logs.txt",
+                "Consulta iniciada: " + paciente.getNome() + " com Dr. " + medico.getNome());
+
+        return true;
+    }
+
+    public void avancarTempo() {
+
+        int unidades = InputsAuxiliares.lerInt("Quantas unidades de tempo avançar: ");
+
+        for (int u = 0; u < unidades; u++) {
+            avancarTempoInterno();
+        }
+
+        System.out.println("Tempo avançado com sucesso.");
+    }
+
+    private void avancarTempoInterno() {
+        for (int i = 0; i < totalConsultas; i++) {
+            consultas[i].avancarTempo();
+
+            if (consultas[i].terminou()) {
+                terminarConsulta(i);
+                i--;
+            }
+        }
+    }
+
+    private void terminarConsulta(int indice) {
+        Consulta c = consultas[indice];
+
+        c.getMedico().setDisponivel(true);
+        c.getPaciente().setEmAtendimento(false);
+
+        gestor.escreverLog("logs.txt",
+                "Consulta terminada: " + c.getPaciente().getNome() +
+                        " com Dr. " + c.getMedico().getNome());
+
+        for (int i = indice; i < totalConsultas - 1; i++) {
+            consultas[i] = consultas[i + 1];
+        }
+
+        consultas[--totalConsultas] = null;
+    }
+
+    // ================== GETTERS ==================
+    public int getTotalMedicos() {
+        return totalMedicos;
+    }
+
+    public int getTotalPacientes() {
+        return totalPacientes;
+    }
+
+    public int getTotalConsultas() {
+        return totalConsultas;
+    }
+}
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+/*
     // ==========================================================================================
 
     // confirmar as variaveis usadas
@@ -186,7 +327,7 @@ public class GestaoHospital {
 
                 if (m.disponivel && !m.ocupado && !m.emDescanso && m.especialidade.equals(p.especialidadeDesejada)) {
 
-                    // Iniciar Consulta
+                    // Iniciar Consulta.java
                     m.ocupado = true;
                     m.tempoRestanteConsulta = obterTempoConsulta(p.nivelUrgencia);
 
@@ -252,4 +393,4 @@ public class GestaoHospital {
         int tempoEspera = 0;
     }*/
 
-    }
+

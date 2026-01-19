@@ -1,18 +1,40 @@
 package Ficheiros;
 
 import Entidades.Medico;
+import Entidades.Especialidade;
+import Entidades.Sintoma;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class LeitorFicheiros extends InputsAuxiliares.FicheiroUtils {
+public class LeitorFicheiros {
 
+    private String separador;
+
+    // ================= CONSTRUTOR =================
     public LeitorFicheiros(String separador) {
-        super(separador);
+        this.separador = separador;
     }
+
+    // ================= CONTAR LINHAS =================
+    private int contarLinhas(String caminho) {
+        int total = 0;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(caminho))) {
+            while (br.readLine() != null) {
+                total++;
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao contar linhas: " + e.getMessage());
+        }
+
+        return total;
+    }
+
     // ================= ESPECIALIDADES =================
-    public Especialidade[] lerEspecialidades(String caminho){
+    public Especialidade[] lerEspecialidades(String caminho) {
+
         int total = contarLinhas(caminho);
         Especialidade[] lista = new Especialidade[total];
 
@@ -21,14 +43,17 @@ public class LeitorFicheiros extends InputsAuxiliares.FicheiroUtils {
             String linha;
             int i = 0;
 
-            while ((linha = br.readLine=()) != null){
-                String [] partes = linha.split(separador);
+            while ((linha = br.readLine()) != null) {
 
-                String codigo = partes[0];
-                String nome = partes[1];
+                String[] partes = linha.split(separador);
 
-                lista[i] = new Especialidade(codigo, nome);
-                i++;
+                if (partes.length == 2) {   // validação básica
+                    String codigo = partes[0];
+                    String nome = partes[1];
+
+                    lista[i] = new Especialidade(codigo, nome);
+                    i++;
+                }
             }
 
         } catch (IOException e) {
@@ -37,6 +62,7 @@ public class LeitorFicheiros extends InputsAuxiliares.FicheiroUtils {
 
         return lista;
     }
+
     // ================= MÉDICOS =================
     public Medico[] lerMedicos(String caminho) {
 
@@ -49,22 +75,26 @@ public class LeitorFicheiros extends InputsAuxiliares.FicheiroUtils {
             int i = 0;
 
             while ((linha = br.readLine()) != null) {
+
                 String[] partes = linha.split(separador);
 
-                String nome = partes[0];
-                String codEspecialidade = partes[1];
-                int horaEntrada = Integer.parseInt(partes[2]);
-                int horaSaida = Integer.parseInt(partes[3]);
-                double valorHora = Double.parseDouble(partes[4]);
+                if (partes.length == 5) {
 
-                lista[i] = new Medico(
-                        nome,
-                        codEspecialidade,
-                        horaEntrada,
-                        horaSaida,
-                        valorHora
-                );
-                i++;
+                    String nome = partes[0];
+                    String codEspecialidade = partes[1];
+                    int horaEntrada = Integer.parseInt(partes[2]);
+                    int horaSaida = Integer.parseInt(partes[3]);
+                    double valorHora = Double.parseDouble(partes[4]);
+
+                    lista[i] = new Medico(
+                            nome,
+                            codEspecialidade,
+                            horaEntrada,
+                            horaSaida,
+                            valorHora
+                    );
+                    i++;
+                }
             }
 
         } catch (IOException e) {
@@ -75,7 +105,7 @@ public class LeitorFicheiros extends InputsAuxiliares.FicheiroUtils {
     }
 
     // ================= SINTOMAS =================
-    public Sintoma[] lerSintomas(String caminho) {
+    public Sintoma[] lerSintomas(String caminho, Especialidade[] especialidadesSistema) {
 
         int total = contarLinhas(caminho);
         Sintoma[] lista = new Sintoma[total];
@@ -86,18 +116,32 @@ public class LeitorFicheiros extends InputsAuxiliares.FicheiroUtils {
             int i = 0;
 
             while ((linha = br.readLine()) != null) {
+
                 String[] partes = linha.split(separador);
 
-                String nome = partes[0];
-                String urgencia = partes[1];
+                if (partes.length >= 2) {
 
-                String[] especialidades = new String[partes.length - 2];
-                for (int j = 2; j < partes.length; j++) {
-                    especialidades[j - 2] = partes[j];
+                    String nome = partes[0];
+                    String urgencia = partes[1];
+
+                    Especialidade especialidade = null;
+
+                    // Se existir código de especialidade
+                    if (partes.length == 3) {
+                        String codEsp = partes[2];
+
+                        // Procurar especialidade no sistema
+                        for (Especialidade e : especialidadesSistema) {
+                            if (e.getCodigo().equalsIgnoreCase(codEsp)) {
+                                especialidade = e;
+                                break;
+                            }
+                        }
+                    }
+
+                    lista[i] = new Sintoma(nome, urgencia, especialidade);
+                    i++;
                 }
-
-                lista[i] = new Sintoma(nome, urgencia, especialidades);
-                i++;
             }
 
         } catch (IOException e) {
@@ -105,7 +149,5 @@ public class LeitorFicheiros extends InputsAuxiliares.FicheiroUtils {
         }
 
         return lista;
-    }
-}
-
+    }}
 
