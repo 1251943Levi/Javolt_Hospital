@@ -1,11 +1,11 @@
 package Serviços;
-package UI;
 
 import Entidades.*;
-import Ficheiros.*;
+import Ficheiros.GestorFicheiros;
+import Ficheiros.LeitorFicheiros;
 import UI.InputsAuxiliares;
+
 import java.io.File;
-import java.util.Arrays;
 
 public class GestaoHospital {
 
@@ -343,6 +343,42 @@ public class GestaoHospital {
         }
     }
 
+    public boolean atualizarMedico(String nome, Medico medicoAtualizado) {
+
+        for (int i = 0; i < totalMedicos; i++) {
+            if (medicos[i].getNome().equalsIgnoreCase(nome)) {
+                medicos[i] = medicoAtualizado;
+                return true;
+            }
+        }
+
+        System.out.println("Médico não encontrado.");
+        return false;
+    }
+
+    public boolean removerMedico(String nome) {
+
+        for (int i = 0; i < totalMedicos; i++) {
+
+            if (medicos[i].getNome().equalsIgnoreCase(nome)) {
+
+                // deslocar os elementos
+                for (int j = i; j < totalMedicos - 1; j++) {
+                    medicos[j] = medicos[j + 1];
+                }
+
+                medicos[totalMedicos - 1] = null;
+                totalMedicos--;
+
+                return true;
+            }
+        }
+
+        System.out.println("Médico não encontrado.");
+        return false;
+    }
+
+
     public Medico procurarMedicoPorEspecialidade(String especialidade) {
         for (int i = 0; i < totalMedicos; i++) {
             if (medicos[i].getEspecialidade().equalsIgnoreCase(especialidade)
@@ -361,6 +397,8 @@ public class GestaoHospital {
         pacientes[totalPacientes++] = p;
         return true;
     }
+
+
 
     public void listarPacientes() {
         InputsAuxiliares.imprimirCabecalho("LISTA DE PACIENTES");
