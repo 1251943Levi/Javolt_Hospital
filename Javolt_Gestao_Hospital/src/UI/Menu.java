@@ -14,29 +14,24 @@ public class Menu {
     // ================= MENU PRINCIPAL =================
 
     public void start() {
+        InputsAuxiliares.limparTela();
+        InputsAuxiliares.imprimirCabecalho("SISTEMA DE GESTÃO HOSPITALAR");
+        System.out.println("|    Bem-vindo ao sistema Javolt Hospital    |");
+        InputsAuxiliares.imprimirLinha();
+
         int opcao;
-
-        do {
-            opcao = menuPrincipal();
-
-            switch (opcao) {
-                case 1 -> menuGestaoHospital();
-                case 2 -> menuEstatisticas();
-                case 3 -> menuConfiguracoes();
-                case 0 -> System.out.println("A sair da aplicação...");
-                default -> System.out.println("Opção inválida.");
-            }
-
-        } while (opcao != 0);
+        // ... resto do código
     }
 
+    // Substituir os System.out.println simples por formatação melhor
     private int menuPrincipal() {
-        System.out.println("\n===== MENU PRINCIPAL =====");
-        System.out.println("1 - Gestão do Hospital");
-        System.out.println("2 - Estatísticas");
-        System.out.println("3 - Configurações");
-        System.out.println("0 - Sair");
-        return InputsAuxiliares.lerInt("Opção: ");
+        InputsAuxiliares.imprimirCabecalho("MENU PRINCIPAL");
+        System.out.println("|   1 - Gestão do Hospital                |");
+        System.out.println("|   2 - Estatísticas                      |");
+        System.out.println("|   3 - Configurações                     |");
+        System.out.println("|   0 - Sair                              |");
+        InputsAuxiliares.imprimirLinha();
+        return InputsAuxiliares.lerInteiroIntervalo("Opção: ", 0, 3);
     }
 
     // ================= GESTÃO HOSPITAL =================
