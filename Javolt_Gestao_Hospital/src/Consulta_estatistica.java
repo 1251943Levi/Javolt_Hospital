@@ -1,3 +1,5 @@
+import entidades.Medico;
+
 public class Consulta_estatistica {
 
     /* ==============================
@@ -27,14 +29,14 @@ public class Consulta_estatistica {
        UTENTES POR SINTOMA
        ============================== */
     public static int contarSintoma(String sintoma,
-                                    Paciente[] pacientes,
+                                    Utente[] utentes,
                                     int totalPacientes) {
 
         int contador = 0;
 
         for (int i = 0; i < totalPacientes; i++) {
-            String[] sintomas = pacientes[i].getSintomas();
-            int totalSintomas = pacientes[i].getTotalSintomas();
+            String[] sintomas = utentes[i].getSintomas();
+            int totalSintomas = utentes[i].getTotalSintomas();
 
             for (int j = 0; j < totalSintomas; j++) {
                 if (sintomas[j].equalsIgnoreCase(sintoma)) {
@@ -50,14 +52,14 @@ public class Consulta_estatistica {
        ============================== */
     public static void top3Especialidades(Especialidade[] especialidades,
                                           int totalEspecialidades,
-                                          Paciente[] pacientes,
+                                          Utente[] utentes,
                                           int totalPacientes) {
 
         int[] contadores = new int[totalEspecialidades];
 
         // Contar pacientes por especialidade
         for (int i = 0; i < totalPacientes; i++) {
-            String espPaciente = pacientes[i].getEspecialidadeAtribuida();
+            String espPaciente = utentes[i].getEspecialidadeAtribuida();
 
             if (espPaciente == null) continue;
 
