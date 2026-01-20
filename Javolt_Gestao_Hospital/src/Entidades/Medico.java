@@ -7,11 +7,13 @@ package Entidades;
  * @since 2025-12-17
  */
 public class Medico {
-    private String nome; // Nome do Mécico
-    private String especialidade; // Especialidade, pode ser alterado para uma classe Especialidade depois
-    private int horaEntrada; // Hora de Entrada do Médico
-    private int horaSaida; // Hora de Saída do Médico
-    private double valorHora; // Valor hora
+    private String nome;
+    private String especialidade;
+    private int horaEntrada;
+    private int horaSaida;
+    private double valorHora;
+    private boolean disponivel = true;
+    private double horasTrabalhadas = 0;
 
     /**
      * Costrutor Vazio
@@ -114,14 +116,30 @@ public class Medico {
     public void setValorHora(double valorHora) {
         this.valorHora = valorHora;
     }
+    public boolean isDisponivel() {
+        return disponivel;
+    }
 
-    /**
-     * Metodo para Mostrar a Informação do Médico
-     * @return
-     */
+    public void setDisponivel(boolean disponivel) {
+        this.disponivel = disponivel;
+    }
+
+    public double getHorasTrabalhadas() {
+        return horasTrabalhadas;
+    }
+
+    public void setHorasTrabalhadas(double horasTrabalhadas) {
+        this.horasTrabalhadas = horasTrabalhadas;
+    }
+
+    public void adicionarHorasTrabalhadas(double horas) {
+        this.horasTrabalhadas += horas;
+    }
+
     @Override
     public String toString() {
         return "Médico: " + nome + " | Esp: " + especialidade +
-                " | Horário: " + horaEntrada + "h - " + horaSaida + "h";
-    }
+            " | Horário: " + horaEntrada + "h - " + horaSaida + "h" +
+            " | Disponível: " + (disponivel ? "Sim" : "Não");
+}
 }

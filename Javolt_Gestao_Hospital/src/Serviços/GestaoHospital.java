@@ -1,8 +1,11 @@
 package Serviços;
+package UI;
 
 import Entidades.*;
 import Ficheiros.*;
 import UI.InputsAuxiliares;
+import java.io.File;
+import java.util.Arrays;
 
 public class GestaoHospital {
 
@@ -13,54 +16,330 @@ public class GestaoHospital {
     private Sintoma[] sintomas;
     private Especialidade[] especialidades;
 
+    // Configuração como objeto, não importar a classe
+    private Configuracao configuracao;
+
     private LeitorFicheiros leitor;
     private GestorFicheiros gestor;
 
     private int totalMedicos;
     private int totalPacientes;
     private int totalConsultas;
+    private int totalSintomas;
+    private int totalEspecialidades;
+
+    private int totalPacientesAtendidos = 0;
+    private int diasDecorridos = 1;
+    private int unidadeTempoAtual = 1;
+    private final int UNIDADES_POR_DIA = 24;
 
     // ================== CONSTRUTOR ==================
     public GestaoHospital() {
-
+        // Inicializar arrays
         medicos = new Medico[100];
         pacientes = new Paciente[200];
         consultas = new Consulta[100];
+        sintomas = new Sintoma[50];
+        especialidades = new Especialidade[20];
 
+        // Inicializar contadores
         totalMedicos = 0;
         totalPacientes = 0;
         totalConsultas = 0;
+        totalSintomas = 0;
+        totalEspecialidades = 0;
 
-        leitor = new LeitorFicheiros(";");
-        gestor = new GestorFicheiros(";");
+        // Criar configuração (usando nome completo da classe)
+        configuracao = new Entidades.Configuracao();
 
-        especialidades = leitor.lerEspecialidades("especialidades.txt");
-        medicos = leitor.lerMedicos("medicos.txt");
-        sintomas = leitor.lerSintomas("sintomas.txt", especialidades);
+        // Inicializar leitor e gestor de ficheiros
+        leitor = new LeitorFicheiros(String.valueOf(configuracao.getSeparador()));
+        gestor = new GestorFicheiros(String.valueOf(configuracao.getSeparador()));
 
-        totalMedicos = 0;
-        for (Medico m : medicos) {
-            if (m != null) totalMedicos++;
-        }
+        carregarDadosIniciais();
 
         gestor.escreverLog("logs.txt", "Sistema iniciado com sucesso");
     }
 
-    // ================== MÉDICOS ==================
+    // ================== CARREGAMENTO DE DADOS ==================
+    private void carregarDadosIniciais() {
+        try {
+            String caminho = configuracao.getCaminhoFicheiros();
+
+            File dir = new File(caminho);
+            if (!dir.exists()) {
+                dir.mkdirs();
+                InputsAuxiliares.imprimirAviso("Diretório de dados criado: " + caminho);
+            }
+
+            // Carregar especialidades
+            Especialidade[] especialidadesLidas = leitor.lerEspecialidades(caminho + "especialidades.txt");
+            if (especialidadesLidas != null) {
+                for (Especialidade esp : especialidadesLidas) {
+                    if (esp != null && totalEspecialidades < especialidades.length) {
+                        especialidades[totalEspecialidades++] = esp;
+                    }
+                }
+            }
+
+            // Carregar médicos
+            Medico[] medicosLidos = leitor.lerMedicos(caminho + "medicos.txt");
+            if (medicosLidos != null) {
+                for (Medico med : medicosLidos) {
+                    if (med != null && totalMedicos < medicos.length) {
+                        medicos[totalMedicos++] = med;
+                    }
+                }
+            }
+
+            // Carregar sintomas
+            Sintoma[] sintomasLidos = leitor.lerSintomas(caminho + "sintomas.txt", especialidades);
+            if (sintomasLidos != null) {
+                for (Sintoma sint : sintomasLidos) {
+                    if (sint != null && totalSintomas < sintomas.length) {
+                        sintomas[totalSintomas++] = sint;
+                    }
+                }
+            }
+
+            InputsAuxiliares.imprimirSucesso("Dados carregados com sucesso!");
+
+        } catch (Exception e) {
+            InputsAuxiliares.imprimirErro("Erro ao carregar dados: " + e.getMessage());
+            InputsAuxiliares.imprimirAviso("Continuando com dados vazios...");
+        }
+    }
+
+    // ================== CONFIGURAÇÕES ==================
+    public void alterarCaminhoFicheiros() {
+        InputsAuxiliares.imprimirCabecalho("ALTERAR CAMINHO DOS FICHEIROS");
+
+        String novoCaminho = InputsAuxiliares.lerTextoNaoVazio("Novo caminho (ex: dados/): ");
+
+        if (!novoCaminho.endsWith("/") && !novoCaminho.endsWith("\\")) {
+            novoCaminho += "/";
+        }
+
+        if (configuracao.verificarPassword(InputsAuxiliares.lerTexto("Password: "))) {
+            configuracao.setCaminhoFicheiros(novoCaminho);
+
+            // Recarregar dados com novo caminho
+            leitor = new LeitorFicheiros(String.valueOf(configuracao.getSeparador()));
+            carregarDadosIniciais();
+
+            InputsAuxiliares.imprimirSucesso("Caminho alterado e dados recarregados!");
+        } else {
+            InputsAuxiliares.imprimirErro("Password incorreta!");
+        }
+    }
+
+    public void alterarSeparador() {
+        InputsAuxiliares.imprimirCabecalho("ALTERAR SEPARADOR");
+
+        char novoSeparador = InputsAuxiliares.lerSeparador("Novo separador");
+
+        if (configuracao.verificarPassword(InputsAuxiliares.lerTexto("Password: "))) {
+            configuracao.setSeparador(novoSeparador);
+
+            // Atualizar leitor e gestor
+            leitor = new LeitorFicheiros(String.valueOf(novoSeparador));
+            gestor = new GestorFicheiros(String.valueOf(novoSeparador));
+
+            InputsAuxiliares.imprimirSucesso("Separador alterado para: " + novoSeparador);
+        } else {
+            InputsAuxiliares.imprimirErro("Password incorreta!");
+        }
+    }
+
+    public void alterarTemposConsulta() {
+        InputsAuxiliares.imprimirCabecalho("ALTERAR TEMPOS DE CONSULTA");
+
+        if (!configuracao.verificarPassword(InputsAuxiliares.lerTexto("Password: "))) {
+            InputsAuxiliares.imprimirErro("Password incorreta!");
+            return;
+        }
+
+        System.out.println("\nTempos atuais:");
+        System.out.println("Baixa: " + configuracao.getTempoConsultaBaixa() + " UT");
+        System.out.println("Média: " + configuracao.getTempoConsultaMedia() + " UT");
+        System.out.println("Urgente: " + configuracao.getTempoConsultaUrgente() + " UT");
+
+        InputsAuxiliares.imprimirTitulo("Novos valores (0 para manter atual)");
+
+        int tempoBaixa = InputsAuxiliares.lerInteiro("Tempo Baixa: ");
+        if (tempoBaixa > 0) configuracao.setTempoConsultaBaixa(tempoBaixa);
+
+        int tempoMedia = InputsAuxiliares.lerInteiro("Tempo Média: ");
+        if (tempoMedia > 0) configuracao.setTempoConsultaMedia(tempoMedia);
+
+        int tempoUrgente = InputsAuxiliares.lerInteiro("Tempo Urgente: ");
+        if (tempoUrgente > 0) configuracao.setTempoConsultaUrgente(tempoUrgente);
+
+        // Tempos de agravamento
+        int baixaParaMedia = InputsAuxiliares.lerInteiro("Tempo Baixa->Média: ");
+        if (baixaParaMedia > 0) configuracao.setTempoBaixaParaMedia(baixaParaMedia);
+
+        int mediaParaUrgente = InputsAuxiliares.lerInteiro("Tempo Média->Urgente: ");
+        if (mediaParaUrgente > 0) configuracao.setTempoMediaParaUrgente(mediaParaUrgente);
+
+        int urgenteParaSaida = InputsAuxiliares.lerInteiro("Tempo Urgente->Saída: ");
+        if (urgenteParaSaida > 0) configuracao.setTempoUrgenteParaSaida(urgenteParaSaida);
+
+        InputsAuxiliares.imprimirSucesso("Tempos de consulta atualizados!");
+    }
+
+    // ================== ESTATÍSTICAS ==================
+    public void mediaPacientesDia() {
+        InputsAuxiliares.imprimirCabecalho("MÉDIA DE PACIENTES POR DIA");
+
+        if (diasDecorridos == 1) {
+            System.out.println("Ainda não há dados suficientes (1º dia em andamento)");
+            return;
+        }
+
+        double media = (double) totalPacientesAtendidos / (diasDecorridos - 1);
+        System.out.printf("Média de pacientes atendidos por dia: %.2f%n", media);
+        System.out.println("Total de pacientes atendidos: " + totalPacientesAtendidos);
+        System.out.println("Dias decorridos: " + (diasDecorridos - 1));
+    }
+
+    public void tabelaSalarios() {
+        InputsAuxiliares.imprimirCabecalho("SALÁRIOS POR MÉDICO");
+
+        if (totalMedicos == 0) {
+            System.out.println("Não há médicos registados.");
+            return;
+        }
+
+        double totalSalarios = 0;
+        System.out.printf("%-20s %-15s %-15s %-15s%n",
+                "MÉDICO", "HORAS TRABALHO", "VALOR/HORA", "SALÁRIO");
+        System.out.println("-".repeat(65));
+
+        for (int i = 0; i < totalMedicos; i++) {
+            Medico medico = medicos[i];
+            if (medico != null) {
+                double horasTrabalhadas = 8.0 * diasDecorridos; // 8h por dia
+                double salario = horasTrabalhadas * medico.getValorHora();
+                totalSalarios += salario;
+
+                System.out.printf("%-20s %-15.1f %-15.2f € %-15.2f €%n",
+                        medico.getNome(),
+                        horasTrabalhadas,
+                        medico.getValorHora(),
+                        salario);
+            }
+        }
+
+        System.out.println("-".repeat(65));
+        System.out.printf("TOTAL GERAL: %.2f €%n", totalSalarios);
+    }
+
+    public void topEspecialidades() {
+        InputsAuxiliares.imprimirCabecalho("TOP ESPECIALIDADES");
+
+        if (totalEspecialidades == 0) {
+            System.out.println("Não há especialidades carregadas.");
+            return;
+        }
+
+        int[] contagem = new int[totalEspecialidades];
+
+        // Contar pacientes por especialidade
+        for (int i = 0; i < totalPacientes; i++) {
+            if (pacientes[i] != null) {
+                String espPaciente = pacientes[i].getEspecialidadeDesejada();
+                if (espPaciente != null) {
+                    for (int j = 0; j < totalEspecialidades; j++) {
+                        if (especialidades[j] != null &&
+                                especialidades[j].getNome().equalsIgnoreCase(espPaciente)) {
+                            contagem[j]++;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Criar arrays temporários para ordenação
+        Especialidade[] espOrdenadas = new Especialidade[totalEspecialidades];
+        int[] contOrdenadas = new int[totalEspecialidades];
+
+        // Copiar dados
+        for (int i = 0; i < totalEspecialidades; i++) {
+            espOrdenadas[i] = especialidades[i];
+            contOrdenadas[i] = contagem[i];
+        }
+
+        // Ordenar por contagem (bubble sort)
+        for (int i = 0; i < totalEspecialidades - 1; i++) {
+            for (int j = 0; j < totalEspecialidades - i - 1; j++) {
+                if (contOrdenadas[j] < contOrdenadas[j + 1]) {
+                    // Trocar contagens
+                    int tempCont = contOrdenadas[j];
+                    contOrdenadas[j] = contOrdenadas[j + 1];
+                    contOrdenadas[j + 1] = tempCont;
+
+                    // Trocar especialidades
+                    Especialidade tempEsp = espOrdenadas[j];
+                    espOrdenadas[j] = espOrdenadas[j + 1];
+                    espOrdenadas[j + 1] = tempEsp;
+                }
+            }
+        }
+
+        // Calcular total de pacientes com especialidade
+        int totalPacientesComEspecialidade = 0;
+        for (int count : contagem) {
+            totalPacientesComEspecialidade += count;
+        }
+
+        // Mostrar top 3
+        System.out.println("ESPECIALIDADES MAIS SOLICITADAS:");
+        System.out.println("-".repeat(40));
+
+        int limite = Math.min(3, totalEspecialidades);
+        for (int i = 0; i < limite; i++) {
+            if (espOrdenadas[i] != null) {
+                double percentagem = totalPacientesComEspecialidade > 0 ?
+                        (contOrdenadas[i] * 100.0) / totalPacientesComEspecialidade : 0;
+
+                System.out.printf("%dº %-20s: %d pacientes (%.1f%%)%n",
+                        i + 1,
+                        espOrdenadas[i].getNome(),
+                        contOrdenadas[i],
+                        percentagem);
+            }
+        }
+    }
+
+    // ================== GESTÃO DE MÉDICOS ==================
     public boolean adicionarMedico(Medico m) {
-        if (totalMedicos >= medicos.length) return false;
+        if (totalMedicos >= medicos.length) {
+            return false;
+        }
         medicos[totalMedicos++] = m;
         return true;
     }
 
     public void listarMedicos() {
+        InputsAuxiliares.imprimirCabecalho("LISTA DE MÉDICOS");
+
         if (totalMedicos == 0) {
             System.out.println("Não existem médicos registados.");
             return;
         }
 
         for (int i = 0; i < totalMedicos; i++) {
-            System.out.println(medicos[i]);
+            Medico medico = medicos[i];
+            System.out.printf("%d. %-20s | %-15s | %02d:00-%02d:00 | %.2f€/h | %s%n",
+                    i + 1,
+                    medico.getNome(),
+                    medico.getEspecialidade(),
+                    medico.getHoraEntrada(),
+                    medico.getHoraSaida(),
+                    medico.getValorHora(),
+                    medico.isDisponivel() ? "DISPONÍVEL" : "OCUPADO");
         }
     }
 
@@ -74,42 +353,77 @@ public class GestaoHospital {
         return null;
     }
 
-    // ================== PACIENTES ==================
+    // ================== GESTÃO DE PACIENTES ==================
     public boolean adicionarPaciente(Paciente p) {
-        if (totalPacientes >= pacientes.length) return false;
+        if (totalPacientes >= pacientes.length) {
+            return false;
+        }
         pacientes[totalPacientes++] = p;
         return true;
     }
 
     public void listarPacientes() {
+        InputsAuxiliares.imprimirCabecalho("LISTA DE PACIENTES");
+
         if (totalPacientes == 0) {
             System.out.println("Não existem pacientes registados.");
             return;
         }
 
+        System.out.printf("%-3s %-20s %-12s %-15s %-10s %-15s%n",
+                "#", "NOME", "URGÊNCIA", "ESPECIALIDADE", "ESPERA", "ESTADO");
+        System.out.println("-".repeat(85));
+
         for (int i = 0; i < totalPacientes; i++) {
-            System.out.println(pacientes[i]);
+            Paciente p = pacientes[i];
+            System.out.printf("%-3d %-20s %-12s %-15s %-10d %-15s%n",
+                    i + 1,
+                    p.getNome(),
+                    p.getNivelUrgencia(),
+                    p.getEspecialidadeDesejada() != null ? p.getEspecialidadeDesejada() : "N/D",
+                    p.getTempoEspera(),
+                    p.isEmAtendimento() ? "EM ATENDIMENTO" : "EM ESPERA");
         }
     }
 
     public void registarPaciente() {
-        String nome = InputsAuxiliares.lerString("Nome do paciente: ");
-        Paciente p = new Paciente(nome);
+        InputsAuxiliares.imprimirCabecalho("REGISTAR PACIENTE");
+
+        String nome = InputsAuxiliares.lerTextoNaoVazio("Nome do paciente: ");
+
+        // Solicitar sintomas simples (versão simplificada)
+        System.out.println("\nSintomas disponíveis:");
+        for (int i = 0; i < totalSintomas && i < 10; i++) {
+            if (sintomas[i] != null) {
+                System.out.println((i + 1) + ". " + sintomas[i].getNome());
+            }
+        }
+
+        // Calcular urgência e especialidade (simplificado)
+        String nivelUrgencia = "Média"; // Exemplo - implementar lógica real
+        String especialidade = "Clínica Geral"; // Exemplo
+
+        Paciente p = new Paciente(nome, nivelUrgencia, especialidade);
 
         if (adicionarPaciente(p)) {
-            System.out.println("Paciente registado com sucesso.");
+            InputsAuxiliares.imprimirSucesso("Paciente registado com sucesso.");
+            System.out.println("Nível de urgência: " + nivelUrgencia);
+            System.out.println("Especialidade atribuída: " + especialidade);
         } else {
-            System.out.println("Lista de pacientes cheia.");
+            InputsAuxiliares.imprimirErro("Lista de pacientes cheia.");
         }
     }
 
-    // ================== CONSULTAS ==================
+    // ================== GESTÃO DE CONSULTAS ==================
     public boolean criarConsulta(Medico medico, Paciente paciente, int tempoConsulta) {
-        if (totalConsultas >= consultas.length) return false;
+        if (totalConsultas >= consultas.length) {
+            return false;
+        }
 
         Consulta c = new Consulta(medico, paciente, tempoConsulta);
         consultas[totalConsultas++] = c;
 
+        // Atualizar estados
         medico.setDisponivel(false);
         paciente.setEmAtendimento(true);
 
@@ -119,43 +433,157 @@ public class GestaoHospital {
         return true;
     }
 
-    public void avancarTempo() {
-
-        int unidades = InputsAuxiliares.lerInt("Quantas unidades de tempo avançar: ");
-
-        for (int u = 0; u < unidades; u++) {
-            avancarTempoInterno();
-        }
-
-        System.out.println("Tempo avançado com sucesso.");
-    }
-
-    private void avancarTempoInterno() {
-        for (int i = 0; i < totalConsultas; i++) {
-            consultas[i].avancarTempo();
-
-            if (consultas[i].terminou()) {
-                terminarConsulta(i);
-                i--;
-            }
-        }
-    }
-
     private void terminarConsulta(int indice) {
+        if (indice < 0 || indice >= totalConsultas) {
+            return;
+        }
+
         Consulta c = consultas[indice];
 
+        // Liberar médico e paciente
         c.getMedico().setDisponivel(true);
         c.getPaciente().setEmAtendimento(false);
 
+        // Registrar atendimento
+        totalPacientesAtendidos++;
+
+        // Log
         gestor.escreverLog("logs.txt",
                 "Consulta terminada: " + c.getPaciente().getNome() +
                         " com Dr. " + c.getMedico().getNome());
 
+        // Remover consulta do array
         for (int i = indice; i < totalConsultas - 1; i++) {
             consultas[i] = consultas[i + 1];
         }
 
         consultas[--totalConsultas] = null;
+    }
+
+    // ================== LÓGICA DE AVANÇO DE TEMPO ==================
+    public void avancarTempo() {
+        InputsAuxiliares.imprimirCabecalho("AVANÇAR TEMPO");
+
+        // Verificar se é novo dia
+        if (unidadeTempoAtual >= UNIDADES_POR_DIA) {
+            unidadeTempoAtual = 1;
+            diasDecorridos++;
+            System.out.println(">>> NOVO DIA INICIADO: Dia " + diasDecorridos + " <<<");
+        } else {
+            unidadeTempoAtual++;
+        }
+
+        System.out.println("Tempo atual: " + unidadeTempoAtual + " UT");
+        System.out.println("Dia: " + diasDecorridos);
+
+        // 1. Avançar tempo nas consultas
+        avancarConsultas();
+
+        // 2. Atualizar tempo de espera dos pacientes
+        atualizarEsperaPacientes();
+
+        // 3. Verificar horários dos médicos
+        verificarHorariosMedicos();
+
+        // 4. Tentar alocar pacientes automaticamente
+        alocarPacientesAutomaticamente();
+
+        gestor.escreverLog("logs.txt", "Tempo avançado para: " + unidadeTempoAtual + " UT");
+    }
+
+    private void avancarConsultas() {
+        for (int i = 0; i < totalConsultas; i++) {
+            if (consultas[i] != null) {
+                consultas[i].avancarTempo();
+
+                // Verificar se consulta terminou
+                if (consultas[i].terminou()) {
+                    System.out.println(">>> Consulta terminada: " +
+                            consultas[i].getPaciente().getNome() + " <<<");
+                    terminarConsulta(i);
+                    i--; // Ajustar índice após remoção
+                }
+            }
+        }
+    }
+
+    private void atualizarEsperaPacientes() {
+        for (int i = 0; i < totalPacientes; i++) {
+            if (pacientes[i] != null && !pacientes[i].isEmAtendimento()) {
+                pacientes[i].incrementarTempoEspera();
+                verificarAgravamento(pacientes[i]);
+            }
+        }
+    }
+
+    private void verificarAgravamento(Paciente paciente) {
+        int tempoEspera = paciente.getTempoEspera();
+        String nivelAtual = paciente.getNivelUrgencia();
+
+        if (nivelAtual.equals("Baixa") && tempoEspera >= configuracao.getTempoBaixaParaMedia()) {
+            paciente.setNivelUrgencia("Média");
+            System.out.println(">>> PACIENTE AGRAVADO: " + paciente.getNome() +
+                    " (Baixa -> Média) <<<");
+        } else if (nivelAtual.equals("Média") && tempoEspera >= configuracao.getTempoMediaParaUrgente()) {
+            paciente.setNivelUrgencia("Urgente");
+            System.out.println(">>> PACIENTE AGRAVADO: " + paciente.getNome() +
+                    " (Média -> Urgente) <<<");
+        } else if (nivelAtual.equals("Urgente") && tempoEspera >= configuracao.getTempoUrgenteParaSaida()) {
+            System.out.println(">>> ALERTA: Paciente " + paciente.getNome() +
+                    " espera há " + tempoEspera + " UT com urgência máxima! <<<");
+        }
+    }
+
+    private void verificarHorariosMedicos() {
+        for (int i = 0; i < totalMedicos; i++) {
+            Medico medico = medicos[i];
+
+            // Verificar se está no horário de trabalho
+            boolean noHorario = (unidadeTempoAtual >= medico.getHoraEntrada() &&
+                    unidadeTempoAtual < medico.getHoraSaida());
+
+            if (!noHorario && medico.isDisponivel()) {
+                System.out.println(">>> Médico " + medico.getNome() + " fora do horário <<<");
+            }
+        }
+    }
+
+    private void alocarPacientesAutomaticamente() {
+        for (int i = 0; i < totalPacientes; i++) {
+            Paciente paciente = pacientes[i];
+
+            if (paciente != null &&
+                    !paciente.isEmAtendimento() &&
+                    paciente.getEspecialidadeDesejada() != null) {
+
+                Medico medico = procurarMedicoPorEspecialidade(paciente.getEspecialidadeDesejada());
+
+                if (medico != null && medico.isDisponivel()) {
+                    int tempoConsulta = calcularTempoConsulta(paciente.getNivelUrgencia());
+                    if (criarConsulta(medico, paciente, tempoConsulta)) {
+                        System.out.println(">>> Paciente " + paciente.getNome() +
+                                " alocado para Dr. " + medico.getNome() + " <<<");
+                    }
+                }
+            }
+        }
+    }
+
+    private int calcularTempoConsulta(String nivelUrgencia) {
+        if (nivelUrgencia == null) {
+            return configuracao.getTempoConsultaBaixa();
+        }
+
+        switch (nivelUrgencia) {
+            case "Baixa":
+                return configuracao.getTempoConsultaBaixa();
+            case "Média":
+                return configuracao.getTempoConsultaMedia();
+            case "Urgente":
+                return configuracao.getTempoConsultaUrgente();
+            default:
+                return configuracao.getTempoConsultaBaixa();
+        }
     }
 
     // ================== GETTERS ==================
@@ -170,227 +598,38 @@ public class GestaoHospital {
     public int getTotalConsultas() {
         return totalConsultas;
     }
+
+    public int getUnidadeTempoAtual() {
+        return unidadeTempoAtual;
+    }
+
+    public int getDiasDecorridos() {
+        return diasDecorridos;
+    }
+
+    public Entidades.Configuracao getConfiguracao() {
+        return configuracao;
+    }
+
+    // ================== MÉTODOS AUXILIARES ==================
+    public void mostrarEstadoSistema() {
+        InputsAuxiliares.imprimirCabecalho("ESTADO DO SISTEMA");
+        System.out.println("Dia: " + diasDecorridos);
+        System.out.println("Hora: " + unidadeTempoAtual + " UT");
+        System.out.println("Médicos registados: " + totalMedicos);
+        System.out.println("Pacientes em espera: " + (totalPacientes - contarPacientesEmAtendimento()));
+        System.out.println("Pacientes em atendimento: " + contarPacientesEmAtendimento());
+        System.out.println("Consultas em andamento: " + totalConsultas);
+        System.out.println("Total atendidos: " + totalPacientesAtendidos);
+    }
+
+    private int contarPacientesEmAtendimento() {
+        int count = 0;
+        for (int i = 0; i < totalPacientes; i++) {
+            if (pacientes[i] != null && pacientes[i].isEmAtendimento()) {
+                count++;
+            }
+        }
+        return count;
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-    // ==========================================================================================
-
-    // confirmar as variaveis usadas
-    public static int unidadeTempoAtual = 0; // O nosso relógio
-
-    public static Medico[] listaMedicos = new Medico[50];
-    public static int totalMedicos = 0; // Quantos médicos existem na lista
-    public static Paciente[] filaEspera = new Paciente[100];
-    public static int totalPacientes = 0; // Quantos pacientes estão na fila
-
-    // confirmar configs do do aluno 4
-    static int TEMPO_BAIXA = 1;
-    static int TEMPO_MEDIA = 2;
-    static int TEMPO_URGENTE = 3;
-    static int TEMPO_PARA_SUBIR_NIVEL = 3;
-    static int TRABALHO_PARA_DESCANSO = 5; // 5 horas seguidas
-    static int TEMPO_DE_DESCANSO = 1;      // 1 hora de descanso
-
-    public static void avancarUnidadeTempo() {
-        // O relógio avança
-        unidadeTempoAtual++;
-
-        if (unidadeTempoAtual > 24) {
-            unidadeTempoAtual = 1;
-            System.out.println("-- Bom dia! Inicio de um novo dia. --");
-        }
-
-        System.out.println(" Hora Atual: " + unidadeTempoAtual + " ---");
-
-        // Verificar se estamos em emergência (para decidir regras de descanso)
-        boolean modoEmergencia = verificarSeEstamosEmEmergencia();
-
-        // (Entradas, Saídas, Cansaço)
-        atualizarMedicos(modoEmergencia);
-
-        // Gerir Pacientes
-        atualizarPacientes();
-
-        // Atribuir Pacientes A Médicos Livres
-        atribuirConsultas();
-    }
-
-    private static void atualizarMedicos(boolean modoEmergencia) {
-        for (int i = 0; i < totalMedicos; i++) {
-            Medico m = listaMedicos[i];
-
-            // Verificar Entrada
-            if (m.horaEntrada == unidadeTempoAtual) {
-                m.disponivel = true;
-                System.out.println("Entrada: Dr. " + m.nome + " iniciou o turno.");
-            }
-
-            // Se o médico está a descansar
-            if (m.emDescanso) {
-                m.tempoDescansoRestante--;
-                if (m.tempoDescansoRestante <= 0) {
-                    m.emDescanso = false;
-                    m.disponivel = true;
-                    m.horasSeguidasTrabalho = 0; // Reset total porque descansou
-                    System.out.println("Dr. " + m.nome + " acabou o descanso e voltou.");
-                }
-                continue; // Passa ao próximo médico
-            }
-
-            // Se o médico esta em consulta
-            if (m.ocupado) {
-                m.horasSeguidasTrabalho++; // Acumular cnasaço
-                m.tempoRestanteConsulta--; // A consulta avança
-
-                if (m.tempoRestanteConsulta <= 0) {
-                    m.ocupado = false;
-                    System.out.println("Dr. " + m.nome + " acabou a consulta.");
-
-                    // Regra Descanso a cada 5h
-                    if (m.horasSeguidasTrabalho >= TRABALHO_PARA_DESCANSO) {
-                        m.emDescanso = true;
-                        m.disponivel = false;
-                        m.tempoDescansoRestante = TEMPO_DE_DESCANSO;
-                        System.out.println("! AVISO: Dr. " + m.nome + " está exausto. Vai descansar.");
-                    } else {
-                        m.disponivel = true; // Fica livre para o próximo
-                    }
-                }
-            }
-            // Se o medico está livre, descansa 1 hora
-            else if (m.disponivel) {
-                if (modoEmergencia) {
-                    // Caso hospital esteja em estado de emergencia aproveita a pausa para "zerar" o cansaço
-                    if (m.horasSeguidasTrabalho > 0) {
-                        m.horasSeguidasTrabalho = 0;
-                        System.out.println("Emergência: Dr. " + m.nome + " recuperou fôlego na pausa.");
-                    }
-                }
-                // Se nao for emergência, descansar a cada 5 horas como normal
-            }
-
-            // Verificar Saída, turno acaba
-            // Só sai se já não estiver ocupado. Se estiver ocupado, sai quando acabar a consulta
-            if (m.horaSaida == unidadeTempoAtual && !m.ocupado) {
-                m.disponivel = false;
-                System.out.println("Saída: Dr. " + m.nome + " terminou o turno e foi para casa.");
-            }
-        }
-    }
-
-    private static void atualizarPacientes() {
-        for (int i = 0; i < totalPacientes; i++) {
-            Paciente p = filaEspera[i];
-            p.tempoEspera++;
-
-            // Regra: Baixa - Média
-            if (p.nivelUrgencia.equals("Baixa") && p.tempoEspera >= TEMPO_PARA_SUBIR_NIVEL) {
-                p.nivelUrgencia = "Media";
-                p.tempoEspera = 0;
-                System.out.println("AGRAVAMENTO: " + p.nome + " passou para MÉDIA.");
-            }
-            // Regra: Média - Urgente
-            else if (p.nivelUrgencia.equals("Media") && p.tempoEspera >= TEMPO_PARA_SUBIR_NIVEL) {
-                p.nivelUrgencia = "Urgente";
-                System.out.println("AGRAVAMENTO: " + p.nome + " passou para URGENTE.");
-            }
-        }
-    }
-
-    private static void atribuirConsultas() {
-        // Percorrer a fila de espera
-        for (int i = 0; i < totalPacientes; i++) {
-            Paciente p = filaEspera[i];
-
-            // Procurar médico para este paciente
-            for (int j = 0; j < totalMedicos; j++) {
-                Medico m = listaMedicos[j];
-
-                // Confirmar a especialidade correta e se esta disponivel e se nao esta em descanso
-
-                if (m.disponivel && !m.ocupado && !m.emDescanso && m.especialidade.equals(p.especialidadeDesejada)) {
-
-                    // Iniciar Consulta.java
-                    m.ocupado = true;
-                    m.tempoRestanteConsulta = obterTempoConsulta(p.nivelUrgencia);
-
-                    System.out.println("Atendimento: Dr. " + m.nome + " chamou " + p.nome);
-
-                    // Remover paciente da fila e ajustar array
-                    removerPaciente(i);
-                    i--; // Recuar o índice i porque a fila encolheu
-                    totalPacientes--;
-
-                    break; // Sai do loop dos médicos, vai para o próximo paciente
-                }
-            }
-        }
-    }
-
-    // Definir se esta em estado de emergencia
-    private static boolean verificarSeEstamosEmEmergencia() {
-        int contaUrgentes = 0;
-        for (int i = 0; i < totalPacientes; i++) {
-            if (filaEspera[i].nivelUrgencia.equals("Urgente")) contaUrgentes++;
-        }
-        // Se houver mais de 10 pessoas ou 3 urgentes, ativa modo emergência
-        if (totalPacientes > 10 || contaUrgentes >= 3) {
-            System.out.println("!ESTADO DE EMERGÊNCIA ATIVO!");
-            return true;
-        }
-        return false;
-    }
-
-    // Remove paciente do array e "empurra" os outros para trás (Shift Left)
-    private static void removerPaciente(int posicaoParaRemover) {
-        for (int k = posicaoParaRemover; k < totalPacientes - 1; k++) {
-            filaEspera[k] = filaEspera[k + 1];
-        }
-        filaEspera[totalPacientes - 1] = null; // Limpa o último
-    }
-
-    // Calcula tempo com base na urgência
-    private static int obterTempoConsulta(String urgencia) {
-        return switch (urgencia) {
-            case "Baixa" -> TEMPO_BAIXA;      // 1 un.
-            case "Media" -> TEMPO_MEDIA;      // 2 un.
-            case "Urgente" -> TEMPO_URGENTE;  // 3 un.
-            default -> 1;
-        };
-    }
-
-    /*Classe de dados
-    public static class Entidades.Medico {
-        String nome, especialidade;
-        int horaEntrada, horaSaida;
-        boolean disponivel = false;      // Está no hospital?
-        boolean ocupado = false;         // Está a atender?
-        boolean emDescanso = false;      // Está na pausa obrigatória?
-        int horasSeguidasTrabalho = 0;   // Contador de cansaço
-        int tempoRestanteConsulta = 0;   // Quanto falta para acabar consulta
-        int tempoDescansoRestante = 0;   // Quanto falta para acabar descanso
-    }*/
-
-    /*public static class Entidades.Paciente {
-        String nome, nivelUrgencia, especialidadeDesejada;
-        int tempoEspera = 0;
-    }*/
-
-
