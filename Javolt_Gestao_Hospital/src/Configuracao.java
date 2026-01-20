@@ -165,6 +165,56 @@ public class Configuracao {
                 "Média -> Urgente" + tempoMediaParaUrgente + " UT\n" +
                 "Urgente -> Saída" + tempoUrgenteParaSaida + " UT\n";
     }
+
+    public void gravarConfiguracoes() {
+        try (FileWriter fw = new FileWriter("config.txt");
+             PrintWriter out = new PrintWriter(fw)) {
+
+            // Escrevemos linha a linha, numa ordem específica
+            out.println(caminhoFicheiros);
+            out.println(separador);
+            out.println(tempoConsultaBaixa);
+            out.println(tempoConsultaMedia);
+            out.println(tempoConsultaUrgente);
+            out.println(horasTrabalhoParaDescanso);
+            out.println(unidadesDescanso);
+            out.println(password);
+
+            System.out.println(">> Configurações guardadas com sucesso.");
+
+        } catch (IOException e) {
+            System.out.println(">> Erro ao gravar configurações: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lê as configurações do ficheiro. Se não existir, usa os valores padrão.
+     */
+    public void carregarConfiguracoes() {
+        File ficheiro = new File("config.txt");
+        if (!ficheiro.exists()) {
+            System.out.println(">> Ficheiro de config não encontrado. A usar predefinições.");
+            return; // Mantém os valores do construtor (defaults)
+        }
+
+        try (Scanner ler = new Scanner(ficheiro)) {
+            if (ler.hasNextLine()) this.caminhoFicheiros = ler.nextLine();
+            if (ler.hasNextLine()) {
+                String sep = ler.nextLine();
+                if (!sep.isEmpty()) this.separador = sep.charAt(0);
+            }
+            if (ler.hasNextInt()) this.tempoConsultaBaixa = ler.nextInt();
+            if (ler.hasNextInt()) this.tempoConsultaMedia = ler.nextInt();
+            if (ler.hasNextInt()) this.tempoConsultaUrgente = ler.nextInt();
+            if (ler.hasNextInt()) this.horasTrabalhoParaDescanso = ler.nextInt();
+            if (ler.hasNextInt()) this.unidadesDescanso = ler.nextInt();
+            if (ler.hasNext())    this.password = ler.next(); // Ler a password
+
+            System.out.println(">> Configurações carregadas.");
+        } catch (Exception e) {
+            System.out.println(">> Erro ao ler configurações (ficheiro corrompido?).");
+        }
+    }
 }
 
 
