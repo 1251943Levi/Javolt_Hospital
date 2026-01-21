@@ -389,6 +389,161 @@ public class GestaoHospital {
         return null;
     }
 
+    // ================== GESTÃO DE ESPECIALIDADES ==================
+    public boolean adicionarEspecialidade(Especialidade e) {
+
+        if (totalEspecialidades >= especialidades.length) {
+            InputsAuxiliares.imprimirErro("Limite de especialidades atingido.");
+            return false;
+        }
+
+        if (procurarEspecialidade(e.getCodigo()) != null) {
+            InputsAuxiliares.imprimirErro("Já existe uma especialidade com esse código.");
+            return false;
+        }
+
+        especialidades[totalEspecialidades++] = e;
+        gestor.escreverLog("logs.txt", "Especialidade adicionada: " + e.getNome());
+        return true;
+    }
+
+    public void listarEspecialidades() {
+
+        InputsAuxiliares.imprimirCabecalho("LISTA DE ESPECIALIDADES");
+
+        if (totalEspecialidades == 0) {
+            System.out.println("Não existem especialidades registadas.");
+            return;
+        }
+
+        for (int i = 0; i < totalEspecialidades; i++) {
+            Especialidade e = especialidades[i];
+            System.out.printf("%d. [%s] %s%n",
+                    i + 1,
+                    e.getCodigo(),
+                    e.getNome());
+        }
+    }
+
+    public Especialidade procurarEspecialidade(String codigo) {
+
+        for (int i = 0; i < totalEspecialidades; i++) {
+            if (especialidades[i].getCodigo().equalsIgnoreCase(codigo)) {
+                return especialidades[i];
+            }
+        }
+
+        return null;
+    }
+
+    public boolean atualizarEspecialidade(String codigo, Especialidade atualizada) {
+
+        for (int i = 0; i < totalEspecialidades; i++) {
+            if (especialidades[i].getCodigo().equalsIgnoreCase(codigo)) {
+                especialidades[i] = atualizada;
+                gestor.escreverLog("logs.txt", "Especialidade atualizada: " + atualizada.getNome());
+                return true;
+            }
+        }
+
+        InputsAuxiliares.imprimirErro("Especialidade não encontrada.");
+        return false;
+    }
+
+    public boolean removerEspecialidade(String codigo) {
+
+        for (int i = 0; i < totalEspecialidades; i++) {
+
+            if (especialidades[i].getCodigo().equalsIgnoreCase(codigo)) {
+
+                for (int j = i; j < totalEspecialidades - 1; j++) {
+                    especialidades[j] = especialidades[j + 1];
+                }
+
+                especialidades[--totalEspecialidades] = null;
+                gestor.escreverLog("logs.txt", "Especialidade removida: " + codigo);
+                return true;
+            }
+        }
+
+        InputsAuxiliares.imprimirErro("Especialidade não encontrada.");
+        return false;
+    }
+// ================== GESTÃO DE SISTOMA ==================
+public boolean adicionarSintoma(Sintoma s) {
+
+    if (totalSintomas >= sintomas.length) {
+        return false;
+    }
+
+    if (procurarSintoma(s.getNome()) != null) {
+        return false;
+    }
+
+    sintomas[totalSintomas++] = s;
+    gestor.escreverLog("logs.txt", "Sintoma adicionado: " + s.getNome());
+    return true;
+}
+
+    public void listarSintomas() {
+
+        InputsAuxiliares.imprimirCabecalho("LISTA DE SINTOMAS");
+
+        if (totalSintomas == 0) {
+            System.out.println("Não existem sintomas registados.");
+            return;
+        }
+
+        for (int i = 0; i < totalSintomas; i++) {
+            Sintoma s = sintomas[i];
+            System.out.printf("%d. %-20s | Urgência: %d | Especialidade: %s%n",
+                    i + 1,
+                    s.getNome(),
+                    s.getUrgencia(),
+                    (s.getEspecialidade() != null ? s.getEspecialidade().getNome() : "N/A"));
+        }
+    }
+
+    public Sintoma procurarSintoma(String nome) {
+
+        for (int i = 0; i < totalSintomas; i++) {
+            if (sintomas[i].getNome().equalsIgnoreCase(nome)) {
+                return sintomas[i];
+            }
+        }
+        return null;
+    }
+
+    public boolean atualizarSintoma(String nome, Sintoma atualizado) {
+
+        for (int i = 0; i < totalSintomas; i++) {
+            if (sintomas[i].getNome().equalsIgnoreCase(nome)) {
+                sintomas[i] = atualizado;
+                gestor.escreverLog("logs.txt", "Sintoma atualizado: " + nome);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removerSintoma(String nome) {
+
+        for (int i = 0; i < totalSintomas; i++) {
+
+            if (sintomas[i].getNome().equalsIgnoreCase(nome)) {
+
+                for (int j = i; j < totalSintomas - 1; j++) {
+                    sintomas[j] = sintomas[j + 1];
+                }
+
+                sintomas[--totalSintomas] = null;
+                gestor.escreverLog("logs.txt", "Sintoma removido: " + nome);
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ================== GESTÃO DE PACIENTES ==================
     public boolean adicionarPaciente(Paciente p) {
         if (totalPacientes >= pacientes.length) {
@@ -397,8 +552,6 @@ public class GestaoHospital {
         pacientes[totalPacientes++] = p;
         return true;
     }
-
-
 
     public void listarPacientes() {
         InputsAuxiliares.imprimirCabecalho("LISTA DE PACIENTES");
