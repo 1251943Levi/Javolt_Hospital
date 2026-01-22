@@ -19,7 +19,7 @@ public class LeitorFicheiros {
         try (BufferedReader br = new BufferedReader(new FileReader(caminho))) {
             while (br.readLine() != null) total++;
         } catch (IOException e) {
-            System.out.println("⚠ Erro ao contar linhas: " + e.getMessage());
+            System.out.println(" Erro ao contar linhas: " + e.getMessage());
         }
         return total;
     }
@@ -44,23 +44,35 @@ public class LeitorFicheiros {
         return lista;
     }
 
-    public Medico[] lerMedicos(String caminho) {
+    public Medico[] lerMedicos(String caminho, Especialidade[] especialidadesConhecidas) {
         int total = contarLinhas(caminho);
         Medico[] lista = new Medico[total];
 
         try (BufferedReader br = new BufferedReader(new FileReader(caminho))) {
             String linha;
             int i = 0;
-
             while ((linha = br.readLine()) != null) {
                 String[] partes = linha.split(separador);
-                if (partes.length == 5) {
+                if (partes.length >= 5) {
+                    String nomeMedico = partes[0].trim();
+                    String codigoEsp = partes[1].trim();
+                    String nomeEsp = codigoEsp;
+
+                    if (especialidadesConhecidas != null) {
+                        for (Especialidade e : especialidadesConhecidas) {
+                            if (e != null && e.getCodigo().equalsIgnoreCase(codigoEsp)) {
+                                nomeEsp = e.getNome();
+                                break;
+                            }
+                        }
+                    }
+
                     lista[i++] = new Medico(
-                            partes[0], // nome
-                            partes[1], // especialidade
-                            Integer.parseInt(partes[2]), // entrada
-                            Integer.parseInt(partes[3]), // saida
-                            Double.parseDouble(partes[4]) // valor hora
+                            nomeMedico,
+                            nomeEsp,
+                            Integer.parseInt(partes[2].trim()),
+                            Integer.parseInt(partes[3].trim()),
+                            Double.parseDouble(partes[4].trim().replace(",", "."))
                     );
                 }
             }
@@ -77,16 +89,16 @@ public class LeitorFicheiros {
         try (BufferedReader br = new BufferedReader(new FileReader(caminho))) {
             String linha;
             int i = 0;
-
             while ((linha = br.readLine()) != null) {
                 String[] partes = linha.split(separador);
+
                 if (partes.length >= 2) {
-                    String nome = partes[0];
-                    String urgencia = partes[1];
+                    String nome = partes[0].trim();
+                    String urgencia = partes[1].trim();
                     Especialidade especialidade = null;
 
-                    if (partes.length == 3 && especialidadesSistema != null) {
-                        String codEsp = partes[2];
+                    if (partes.length >= 3 && especialidadesSistema != null) {
+                        String codEsp = partes[2].trim();
                         for (Especialidade e : especialidadesSistema) {
                             if (e != null && e.getCodigo().equalsIgnoreCase(codEsp)) {
                                 especialidade = e;

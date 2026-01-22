@@ -254,7 +254,7 @@ public class InputsAuxiliares {
     }
 
     public static void imprimirSucesso(String mensagem) {
-        System.out.println(">> ✓ " + mensagem);
+        System.out.println(">> " + mensagem);
     }
 
     public static void limparTela() {

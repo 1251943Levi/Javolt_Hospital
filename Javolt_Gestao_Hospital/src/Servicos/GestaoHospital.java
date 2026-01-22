@@ -67,11 +67,12 @@ public class GestaoHospital {
             }
 
             // Carregar médicos
-            Medico[] medLidos = leitor.lerMedicos(caminho + "medicos.txt");
-            if (medLidos != null) {
-                for (Medico m : medLidos) {
-                    if (m != null && totalMedicos < medicos.length)
-                        medicos[totalMedicos++] = m;
+            Medico[] medLidos = leitor.lerMedicos(caminho + "medicos.txt", especialidades);            if (medLidos != null) {
+                if (medLidos != null) {
+                    for (Medico m : medLidos) {
+                        if (m != null && totalMedicos < medicos.length)
+                            medicos[totalMedicos++] = m;
+                    }
                 }
             }
 
@@ -315,13 +316,13 @@ public class GestaoHospital {
 
                 if (!jaTem) {
                     p.adicionarSintoma(selecionado);
-                    System.out.println("✓ Sintoma adicionado: " + selecionado.getNome());
+                    System.out.println("Sintoma adicionado: " + selecionado.getNome());
                 } else {
-                    System.out.println("⚠ Paciente já tem esse sintoma.");
+                    System.out.println("Paciente já tem esse sintoma.");
                 }
 
                 if (p.getTotalSintomas() >= 5) {
-                    System.out.println("⏹ Limite de 5 sintomas atingido.");
+                    System.out.println("Limite de 5 sintomas atingido.");
                     adicionarMais = false;
                 }
             }
@@ -338,7 +339,7 @@ public class GestaoHospital {
         // 3. REGISTAR PACIENTE
         if (adicionarPaciente(p)) {
             InputsAuxiliares.imprimirSucesso("PACIENTE REGISTADO COM SUCESSO!");
-            System.out.println("📋 Resumo da Triagem:");
+            System.out.println("  Resumo da Triagem:");
             System.out.println("  Nome: " + p.getNome());
             System.out.println("  Nível de Urgência: " + p.getNivelUrgencia());
             System.out.println("  Especialidade Encaminhada: " +
