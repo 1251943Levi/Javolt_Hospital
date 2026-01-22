@@ -1,7 +1,6 @@
 package Entidades;
 
-public class Paciente {
-    private String nome;
+public class Paciente extends Pessoa{
     private Sintoma[] sintomas;
     private int totalSintomas;
     private String nivelUrgencia;
@@ -10,13 +9,18 @@ public class Paciente {
     private boolean emAtendimento;
 
     public Paciente(String nome, int maxSintomas) {
-        this.nome = nome;
+        super(nome);
         this.sintomas = new Sintoma[maxSintomas];
         this.totalSintomas = 0;
         this.tempoEspera = 0;
         this.especialidadeDesejada = "Clínica Geral";
         this.emAtendimento = false;
         this.nivelUrgencia = "Baixa";
+    }
+
+    @Override
+    public String getTipoEntidade() {
+        return "Paciente";
     }
 
     public void adicionarSintoma(Sintoma s) {
@@ -35,7 +39,6 @@ public class Paciente {
     }
 
     // GETTERS
-    public String getNome() { return nome; }
     public Sintoma[] getSintomas() { return sintomas; }
     public int getTotalSintomas() { return totalSintomas; }
     public String getNivelUrgencia() { return nivelUrgencia; }
@@ -78,15 +81,6 @@ public class Paciente {
         }
     }
 
-    @Override
-    public String toString() {
-        return String.format("%-20s %-10s %-20s %-10s Esp: %d",
-                nome, nivelUrgencia,
-                especialidadeDesejada,
-                (emAtendimento ? "Em Atend." : "Espera"),
-                tempoEspera);
-    }
-
     // Urgencia passa a numeros no GestaoTurnos
     public void setNivelUrgencia(int nivelNumerico) {
         switch (nivelNumerico) {
@@ -95,4 +89,14 @@ public class Paciente {
             default: this.nivelUrgencia = "Baixa"; break;
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("%-20s %-10s %-20s %-10s Esp: %d",
+                nome, nivelUrgencia, // 'nome' vem da superclasse, acessível diretamente
+                especialidadeDesejada,
+                (emAtendimento ? "Em Atend." : "Espera"),
+                tempoEspera);
+    }
+
 }

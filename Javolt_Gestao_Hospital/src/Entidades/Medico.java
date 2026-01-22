@@ -1,7 +1,6 @@
 package Entidades;
 
-public class Medico {
-    private String nome;
+public class Medico extends Pessoa {
     private String especialidade;
     private int horaEntrada;
     private int horaSaida;
@@ -13,15 +12,19 @@ public class Medico {
     public Medico() {}
 
     public Medico(String nome, String especialidade, int horaEntrada, int horaSaida, double valorHora) {
-        this.nome = nome;
+        super(nome);
         this.especialidade = especialidade;
         this.horaEntrada = horaEntrada;
         this.horaSaida = horaSaida;
         this.valorHora = valorHora;
     }
 
+    @Override
+    public String getTipoEntidade() {
+        return "Médico";
+    }
+
     // GETTERS
-    public String getNome() { return nome; }
     public String getEspecialidade() { return especialidade; }
     public int getHoraEntrada() { return horaEntrada; }
     public int getHoraSaida() { return horaSaida; }
@@ -31,7 +34,6 @@ public class Medico {
     public int getHorasTrabalhoContinuo() { return horasTrabalhoContinuo; }
 
     // SETTERS
-    public void setNome(String nome) { this.nome = nome; }
     public void setEspecialidade(String especialidade) { this.especialidade = especialidade; }
     public void setHoraEntrada(int horaEntrada) { this.horaEntrada = horaEntrada; }
     public void setHoraSaida(int horaSaida) { this.horaSaida = horaSaida; }
