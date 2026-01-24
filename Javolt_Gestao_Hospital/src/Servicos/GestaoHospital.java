@@ -4,6 +4,7 @@ import Entidades.*;
 import Ficheiros.GestorFicheiros;
 import Ficheiros.LeitorFicheiros;
 import UI.InputsAuxiliares;
+
 import java.io.File;
 
 public class GestaoHospital {
@@ -47,7 +48,7 @@ public class GestaoHospital {
         gestor = new GestorFicheiros(String.valueOf(configuracao.getSeparador()));
         this.gestorDeTurnos = new GestaoTurnos(this);
         carregarDadosIniciais();
-        gestor.escreverLog("logs.txt", "Sistema iniciado - Dia " + + gestorDeTurnos.getDiasDecorridos());
+        gestor.escreverLog("logs.txt", "Sistema iniciado - Dia " + +gestorDeTurnos.getDiasDecorridos());
     }
 
     // ================== CARREGAMENTO DE DADOS ==================
@@ -197,26 +198,41 @@ public class GestaoHospital {
     // ================== GESTÃO DE MÉDICOS ==================
     public void listarMedicos() {
         InputsAuxiliares.imprimirCabecalho("LISTA DE MÉDICOS");
-        System.out.printf("%-20s %-15s %-15s %-10s %-10s%n",
-                "NOME", "ESPECIALIDADE", "HORÁRIO", "DISPONÍVEL", "HORAS TRAB.");
+        System.out.println("NOME | ESPECIALIDADE | HORÁRIO | ESTADO | HORAS TRAB.");
+        System.out.println("-".repeat(70));
+
+        int tempoAtual = gestorDeTurnos.getDiasDecorridos();
 
         for (int i = 0; i < totalMedicos; i++) {
             Medico m = medicos[i];
             String horario = m.getHoraEntrada() + "h-" + m.getHoraSaida() + "h";
-            String disponivel = m.isDisponivel() ? "Sim" : "Não";
 
-            System.out.printf("%-20s %-15s %-15s %-10s %.1f horas%n",
-                    m.getNome(), m.getEspecialidade(), horario, disponivel,
-                    m.getHorasTrabalhadas());
+            String estadoVisual;
+            boolean dentroDoHorario = tempoAtual >= m.getHoraEntrada() && tempoAtual < m.getHoraSaida();
+
+            if (!dentroDoHorario) {
+                estadoVisual = "Ausente (Folga)";
+            } else if (m.isDisponivel()) {
+                estadoVisual = "Disponível";
+            } else {
+                estadoVisual = "Ocupado";
+            }
+
+            System.out.println(m.getNome() + " | " +
+                    m.getEspecialidade() + " | " +
+                    horario + " | " +
+                    estadoVisual + " | " +
+                    m.getHorasTrabalhadas() + " horas");
         }
     }
+
 
     public Medico procurarMedicoPorEspecialidade(String especialidade) {
         for (int i = 0; i < totalMedicos; i++) {
             Medico m = medicos[i];
             if (m.getEspecialidade().equalsIgnoreCase(especialidade) &&
                     m.isDisponivel() &&
-                    m.estaEmServico(gestorDeTurnos.getUnidadeTempoAtual())){
+                    m.estaEmServico(gestorDeTurnos.getUnidadeTempoAtual())) {
                 return m;
             }
         }
