@@ -67,7 +67,7 @@ public class GestaoHospital {
             }
 
             // Carregar médicos
-            Medico[] medLidos = leitor.lerMedicos(caminho + "medicos.txt");
+            Medico[] medLidos = leitor.lerMedicos(caminho + "medicos.txt", this.especialidades);
             if (medLidos != null) {
                 for (Medico m : medLidos) {
                     if (m != null && totalMedicos < medicos.length)

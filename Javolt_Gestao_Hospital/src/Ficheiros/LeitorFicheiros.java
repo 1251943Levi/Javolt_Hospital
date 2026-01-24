@@ -59,7 +59,7 @@ public class LeitorFicheiros {
                     if(especialidadeSistema != null){
                         for (Especialidade esp : especialidadeSistema){
                             if (esp != null && esp.getCodigo().equalsIgnoreCase(partes[1])) {
-                                especialidadeTexto = esp.toString();
+                                especialidadeTexto = esp.getNome();
                                 break;
                             }
                         }
