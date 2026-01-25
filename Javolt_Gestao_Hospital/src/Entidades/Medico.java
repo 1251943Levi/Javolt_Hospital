@@ -9,6 +9,7 @@ public class Medico {
     private boolean disponivel = true;
     private double horasTrabalhadas = 0;
     private int horasTrabalhoContinuo = 0; // Para controlo de descanso
+    private int tempoDescandoRestante = 0;
 
     public Medico() {}
 
@@ -29,6 +30,7 @@ public class Medico {
     public boolean isDisponivel() { return disponivel; }
     public double getHorasTrabalhadas() { return horasTrabalhadas; }
     public int getHorasTrabalhoContinuo() { return horasTrabalhoContinuo; }
+    public int getTempoDescandoRestante() { return tempoDescandoRestante; }
 
     // SETTERS
     public void setNome(String nome) { this.nome = nome; }
@@ -39,6 +41,7 @@ public class Medico {
     public void setDisponivel(boolean disponivel) { this.disponivel = disponivel; }
     public void setHorasTrabalhadas(double horasTrabalhadas) { this.horasTrabalhadas = horasTrabalhadas; }
     public void setHorasTrabalhoContinuo(int horas) { this.horasTrabalhoContinuo = horas; }
+    public void setTempoDescandoRestante(int tempo) { this.tempoDescandoRestante = tempo; }
 
     // MÉTODOS DE NEGÓCIO
     public void adicionarHorasTrabalhadas(double horas) {
@@ -59,6 +62,24 @@ public class Medico {
         return disponivel &&
                 unidadeTempo >= horaEntrada &&
                 unidadeTempo < horaSaida;
+    }
+
+    public void definirDescanso (int unidades) {
+        this.tempoDescandoRestante = unidades;
+        this.disponivel = false;
+    }
+
+    public void decrementarDescanso(){
+        if (tempoDescandoRestante > 0) {
+            tempoDescandoRestante--;
+            if(tempoDescandoRestante == 0){
+                disponivel = true;
+            }
+        }
+    }
+
+    public boolean estaDeFolga() {
+        return tempoDescandoRestante > 0;
     }
 
     @Override

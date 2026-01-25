@@ -231,6 +231,33 @@ public class GestaoHospital {
     // ================== GESTÃO DE MÉDICOS ==================
     public void listarMedicos() {
         InputsAuxiliares.imprimirCabecalho("LISTA DE MÉDICOS");
+<<<<<<< HEAD
+        System.out.println("NOME | ESPECIALIDADE | HORÁRIO | ESTADO | HORAS TRAB.");
+        System.out.println("-".repeat(70));
+
+        int tempoAtual = gestorDeTurnos.getDiasDecorridos();
+
+        for (int i = 0; i < totalMedicos; i++) {
+            Medico m = medicos[i];
+            String horario = m.getHoraEntrada() + "h-" + m.getHoraSaida() + "h";
+
+            String estadoVisual;
+            boolean dentroDoHorario = tempoAtual >= m.getHoraEntrada() && tempoAtual < m.getHoraSaida();
+
+            if (!dentroDoHorario) {
+                estadoVisual = "Ausente (Folga)";
+            } else if (m.isDisponivel()) {
+                estadoVisual = "Disponível";
+            } else {
+                estadoVisual = "Ocupado";
+            }
+
+            System.out.println(m.getNome() + " | " +
+                    m.getEspecialidade() + " | " +
+                    horario + " | " +
+                    estadoVisual + " | " +
+                    m.getHorasTrabalhadas() + " horas");
+=======
 
         // 1. Obter a hora atual do Gestor de Turnos
         int horaAtual = 0;
@@ -267,6 +294,8 @@ public class GestaoHospital {
                     m.getEspecialidade(),
                     horario,
                     estadoStr, // Mostra o estado calculado
+                    m.getHorasTrabalhadas());
+>>>>>>> Sara_CorrecLerFicheiros
         }
         System.out.println("=".repeat(80));
     }
