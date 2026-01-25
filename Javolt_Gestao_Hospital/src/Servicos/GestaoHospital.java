@@ -10,6 +10,7 @@ public class GestaoHospital {
     // ================== ATRIBUTOS ==================
     private Medico[] medicos;
     private Paciente[] pacientes;
+    private Paciente[] historicoPacientes;
     private GestaoTurnos gestorDeTurnos;
     private Consulta[] consultas;
     private Sintoma[] sintomas;
@@ -24,6 +25,7 @@ public class GestaoHospital {
     private int totalConsultas;
     private int totalSintomas;
     private int totalEspecialidades;
+    private int totalHistorico;
 
     private int totalPacientesAtendidos = 0;
 
@@ -31,6 +33,7 @@ public class GestaoHospital {
     public GestaoHospital() {
         medicos = new Medico[100];
         pacientes = new Paciente[200];
+        historicoPacientes = new Paciente[1000];
         consultas = new Consulta[100];
         sintomas = new Sintoma[100];
         especialidades = new Especialidade[20];
@@ -40,6 +43,7 @@ public class GestaoHospital {
         totalConsultas = 0;
         totalSintomas = 0;
         totalEspecialidades = 0;
+        totalHistorico = 0;
 
         configuracao = new Configuracao();
 
@@ -132,6 +136,7 @@ public class GestaoHospital {
 
     public void alterarTemposConsulta() {
         InputsAuxiliares.imprimirCabecalho("ALTERAR TEMPOS DE CONSULTA");
+        InputsAuxiliares.exibirMsgCancelar();
 
         if (!configuracao.verificarPassword(InputsAuxiliares.lerTexto("Password: "))) {
             InputsAuxiliares.imprimirErro("Password incorreta!");
@@ -140,42 +145,70 @@ public class GestaoHospital {
 
         System.out.println("(Deixe em branco para manter o valor atual)");
 
-        String inputBaixa = InputsAuxiliares.lerTexto(
-                "Tempo Baixa [" + configuracao.getTempoConsultaBaixa() + "]: ");
-        if (!inputBaixa.isEmpty()) {
-            try {
-                int tempo = Integer.parseInt(inputBaixa);
-                if (tempo > 0) configuracao.setTempoConsultaBaixa(tempo);
-            } catch (NumberFormatException e) {
-                InputsAuxiliares.imprimirErro("Valor inválido!");
+        try {
+            String inputBaixa = InputsAuxiliares.lerTexto(
+                    "Tempo Baixa [" + configuracao.getTempoConsultaBaixa() + "]: ");
+            if (inputBaixa.trim().equals("0")) {
+                if(InputsAuxiliares.confirmar("Deseja cancelar a operação? (S/N): ")){
+                    return;
+                }
+            } else if (!inputBaixa.isEmpty()) {
+                try {
+                    int tempo = Integer.parseInt(inputBaixa);
+                    if (tempo > 0) {
+                        configuracao.setTempoConsultaBaixa(tempo);
+                    } else {
+                        InputsAuxiliares.imprimirErro("O tempo deve ser positivo. Valor mantido.");
+                    }
+                } catch (NumberFormatException e) {
+                    InputsAuxiliares.imprimirErro("Valor inválido!");
+                }
             }
-        }
 
-        String inputMedia = InputsAuxiliares.lerTexto(
-                "Tempo Média [" + configuracao.getTempoConsultaMedia() + "]: ");
-        if (!inputMedia.isEmpty()) {
-            try {
-                int tempo = Integer.parseInt(inputMedia);
-                if (tempo > 0) configuracao.setTempoConsultaMedia(tempo);
-            } catch (NumberFormatException e) {
-                InputsAuxiliares.imprimirErro("Valor inválido!");
+            String inputMedia = InputsAuxiliares.lerTexto(
+                    "Tempo Média [" + configuracao.getTempoConsultaMedia() + "]: ");
+
+            if (inputMedia.trim().equals("0")) {
+                if (InputsAuxiliares.confirmar("Deseja cancelar a operação? (S/N): ")){
+                    return;
+                }
+            } else if (!inputMedia.isEmpty()) {
+                try {
+                    int tempo = Integer.parseInt(inputMedia);
+                    if (tempo > 0) {
+                        configuracao.setTempoConsultaMedia(tempo);
+                    } else {
+                        InputsAuxiliares.imprimirErro("O tempo deve ser positivo. Valor mantido.");
+                    }
+                } catch (NumberFormatException e) {
+                    InputsAuxiliares.imprimirErro("Valor inválido!");
+                }
             }
-        }
 
-        String inputUrgente = InputsAuxiliares.lerTexto(
-                "Tempo Urgente [" + configuracao.getTempoConsultaUrgente() + "]: ");
-        if (!inputUrgente.isEmpty()) {
-            try {
-                int tempo = Integer.parseInt(inputUrgente);
-                if (tempo > 0) configuracao.setTempoConsultaUrgente(tempo);
-            } catch (NumberFormatException e) {
-                InputsAuxiliares.imprimirErro("Valor inválido!");
+            String inputUrgente = InputsAuxiliares.lerTexto(
+                    "Tempo Urgente [" + configuracao.getTempoConsultaUrgente() + "]: ");
+            if (inputUrgente.trim().equals("0")) {
+                if (InputsAuxiliares.confirmar("Deseja cancelar a operação? (S/N): ")){
+                    return;
+                }
+            } else if (!inputUrgente.isEmpty()) {
+                try {
+                    int tempo = Integer.parseInt(inputUrgente);
+                    if (tempo > 0) {
+                        configuracao.setTempoConsultaUrgente(tempo);
+                    } else{
+                        InputsAuxiliares.imprimirErro("O tempo deve ser positivo. Valor mantido.");
+                    }
+                } catch (NumberFormatException e) {
+                    InputsAuxiliares.imprimirErro("Valor inválido!");
+                }
             }
-        }
 
-        InputsAuxiliares.imprimirSucesso("Tempos atualizados!");
+            InputsAuxiliares.imprimirSucesso("Configuração de tempos finalizada!");
+        } catch (Exception e) {
+            System.out.println("<< Operação cancelada pelo utilizador.");
+        }
     }
-
     // ================== ESTATÍSTICAS ==================
     public void mediaPacientesDia() {
         ConsultaEstatistica.mostrarMediaPacientes(totalPacientesAtendidos, gestorDeTurnos.getDiasDecorridos());
@@ -187,28 +220,55 @@ public class GestaoHospital {
 
     public void topEspecialidades() {
         ConsultaEstatistica.mostrarTopEspecialidades(especialidades, totalEspecialidades,
-                pacientes, totalPacientes);
+                historicoPacientes, totalHistorico);
     }
 
     public void listarUtentesPorSintoma() {
-        ConsultaEstatistica.mostrarUtentesPorSintoma(pacientes, totalPacientes, sintomas, totalSintomas);
+        ConsultaEstatistica.mostrarUtentesPorSintoma(historicoPacientes, totalHistorico, sintomas, totalSintomas);
     }
 
     // ================== GESTÃO DE MÉDICOS ==================
     public void listarMedicos() {
         InputsAuxiliares.imprimirCabecalho("LISTA DE MÉDICOS");
-        System.out.printf("%-20s %-15s %-15s %-10s %-10s%n",
-                "NOME", "ESPECIALIDADE", "HORÁRIO", "DISPONÍVEL", "HORAS TRAB.");
+
+        // 1. Obter a hora atual do Gestor de Turnos
+        int horaAtual = 0;
+        if (gestorDeTurnos != null) {
+            horaAtual = gestorDeTurnos.getUnidadeTempoAtual();
+            System.out.println("Hora atual da simulação: " + horaAtual + "h");
+        }
+
+        System.out.printf("%-20s %-15s %-15s %-15s %-10s%n",
+                "NOME", "ESPECIALIDADE", "HORÁRIO", "ESTADO ATUAL", "HORAS TRAB.");
+        System.out.println("-".repeat(80));
 
         for (int i = 0; i < totalMedicos; i++) {
             Medico m = medicos[i];
-            String horario = m.getHoraEntrada() + "h-" + m.getHoraSaida() + "h";
-            String disponivel = m.isDisponivel() ? "Sim" : "Não";
 
-            System.out.printf("%-20s %-15s %-15s %-10s %.1f horas%n",
-                    m.getNome(), m.getEspecialidade(), horario, disponivel,
+            String horario = m.getHoraEntrada() + "h - " + m.getHoraSaida() + "h";
+            String estadoStr;
+
+            // 2. Lógica para definir o estado visual
+            boolean dentroDoHorario = horaAtual >= m.getHoraEntrada() && horaAtual < m.getHoraSaida();
+
+            if (!dentroDoHorario) {
+                estadoStr = "Fora de Turno"; // Está fora do horário
+            } else if (m.estaDeFolga()) { // <-- Se já implementaste o descanso que te mandei antes
+                estadoStr = "Em Descanso";
+            } else if (!m.isDisponivel()) {
+                estadoStr = "Ocupado"; // Está numa consulta
+            } else {
+                estadoStr = "Disponível"; // Está no turno E livre
+            }
+
+            System.out.printf("%-20s %-15s %-15s %-15s %.1f%n",
+                    m.getNome(),
+                    m.getEspecialidade(),
+                    horario,
+                    estadoStr, // Mostra o estado calculado
                     m.getHorasTrabalhadas());
         }
+        System.out.println("=".repeat(80));
     }
 
     public Medico procurarMedicoPorEspecialidade(String especialidade) {
@@ -267,8 +327,14 @@ public class GestaoHospital {
 
     // ================== GESTÃO DE PACIENTES E TRIAGEM ==================
     public boolean adicionarPaciente(Paciente p) {
-        if (totalPacientes >= pacientes.length) return false;
+        if (totalPacientes >= pacientes.length) {
+            return false;
+        }
         pacientes[totalPacientes++] = p;
+
+        if (totalPacientes >= historicoPacientes.length) {
+            historicoPacientes[totalPacientes++] = p;
+        }
         return true;
     }
 
@@ -616,5 +682,9 @@ public class GestaoHospital {
         if (gestor != null) {
             gestor.escreverLog("logs.txt", "Histórico: Consulta terminada - " + c.getPaciente().getNome());
         }
+    }
+
+    public String getConfiguracaoTexto() {
+        return configuracao.toString();
     }
 }

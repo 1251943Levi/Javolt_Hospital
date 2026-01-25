@@ -7,93 +7,128 @@ public class SubEspecialidade {
     public void menuEspecialidades(GestaoHospital gestaoHospital) {
         int opcao;
         do {
-            System.out.println("\n" + "=".repeat(40));
-            System.out.println("   GESTÃO DE ESPECIALIDADES");
-            System.out.println("=".repeat(40));
-            System.out.println("1 - Adicionar especialidade");
-            System.out.println("2 - Listar especialidades");
-            System.out.println("3 - Atualizar especialidade");
-            System.out.println("4 - Remover especialidade");
-            System.out.println("0 - Voltar");
-            System.out.println("-".repeat(40));
+            InputsAuxiliares.limparTela();
+            InputsAuxiliares.imprimirCabecalho("GESTÃO DE ESPECIALIDADES");
+            System.out.println("|   1 - Adicionar especialidade                    |");
+            System.out.println("|   2 - Listar especialidades                      |");
+            System.out.println("|   3 - Atualizar especialidade                    |");
+            System.out.println("|   4 - Remover especialidade                      |");
+            System.out.println("|   0 - Voltar                                     |");
+            InputsAuxiliares.imprimirLinha();
 
             opcao = InputsAuxiliares.lerInteiroIntervalo("Opção: ", 0, 4);
 
             switch (opcao) {
                 case 1 -> adicionarEspecialidade(gestaoHospital);
-                case 2 -> gestaoHospital.listarEspecialidades();
+                case 2 -> {
+                    gestaoHospital.listarEspecialidades();
+                   InputsAuxiliares.pausar();
+                }
                 case 3 -> atualizarEspecialidade(gestaoHospital);
                 case 4 -> removerEspecialidade(gestaoHospital);
-                case 0 -> System.out.println("← A voltar...");
-                default -> System.out.println("Opção inválida.");
+                case 0 -> System.out.println("<< A voltar...");
+                default -> InputsAuxiliares.imprimirErro("Opção inválida.");
             }
-
-            if (opcao != 0) InputsAuxiliares.pausar();
-
         } while (opcao != 0);
     }
 
     private void adicionarEspecialidade(GestaoHospital gestaoHospital) {
-        System.out.println("\n ADICIONAR NOVA ESPECIALIDADE");
-        System.out.println("-".repeat(30));
+        InputsAuxiliares.imprimirCabecalho("ADICIONAR ESPECIALIDADE");
+        InputsAuxiliares.exibirMsgCancelar();
+        try {
+            String codigo = InputsAuxiliares.lerTextoComCancelamento("Código da especialidade: ");
+            String nome = InputsAuxiliares.lerTextoComCancelamento("Nome da especialidade: ");
 
-        String codigo = InputsAuxiliares.lerTextoNaoVazio("Código da especialidade: ");
-        String nome = InputsAuxiliares.lerTextoNaoVazio("Nome da especialidade: ");
+            Especialidade e = new Especialidade(codigo, nome);
 
-        Especialidade e = new Especialidade(codigo, nome);
-
-        if (gestaoHospital.adicionarEspecialidade(e)) {
-            InputsAuxiliares.imprimirSucesso("Especialidade adicionada com sucesso!");
-        } else {
-            InputsAuxiliares.imprimirErro("Erro ao adicionar especialidade (código duplicado ou capacidade máxima?).");
+            if (gestaoHospital.adicionarEspecialidade(e)) {
+                InputsAuxiliares.imprimirSucesso("Especialidade adicionada com sucesso!");
+            } else {
+                InputsAuxiliares.imprimirErro("Erro ao adicionar especialidade (código duplicado).");
+            }
+            InputsAuxiliares.pausar();
+        } catch (InputsAuxiliares.OperacaoCanceladaException e) {
+            System.out.println("<< Operação cancelada pelo utilizador.");
+            InputsAuxiliares.pausar();
         }
     }
 
     private void atualizarEspecialidade(GestaoHospital gestaoHospital) {
-        System.out.println("\n  ATUALIZAR ESPECIALIDADE");
-        System.out.println("-".repeat(30));
+        InputsAuxiliares.imprimirCabecalho("ATUALIZAR ESPECIALIDADE");
+        InputsAuxiliares.exibirMsgCancelar();
 
-        String codigo = InputsAuxiliares.lerTextoNaoVazio("Código da especialidade a atualizar: ");
-        Especialidade existente = gestaoHospital.procurarEspecialidade(codigo);
+        try {
+            if (InputsAuxiliares.confirmar("Deseja ver a lista de especialidades existente?")){
+                System.out.println();
+                gestaoHospital.listarEspecialidades();
+                InputsAuxiliares.imprimirLinha();
+                System.out.println();
+            }
 
-        if (existente == null) {
-            InputsAuxiliares.imprimirErro("Especialidade não encontrada.");
-            return;
-        }
+            String codigo = InputsAuxiliares.lerTextoComCancelamento("Código da especialidade a atualizar: ");
+            Especialidade existente = gestaoHospital.procurarEspecialidade(codigo);
 
-        System.out.println("\nEspecialidade encontrada: " + existente.getNome());
-        System.out.println("Deixe em branco para manter valor atual.");
+            if (existente == null) {
+                InputsAuxiliares.imprimirErro("Especialidade não encontrada.");
+                InputsAuxiliares.pausar();
+                return;
+            }
 
-        String novoCodigo = InputsAuxiliares.lerTexto("Novo código [" + existente.getCodigo() + "]: ");
-        if (novoCodigo.isEmpty()) novoCodigo = existente.getCodigo();
+            System.out.println("\nEspecialidade encontrada: " + existente.getNome());
+            System.out.println("Deixe em branco e prima ENTER para manter valor atual.");
 
-        String novoNome = InputsAuxiliares.lerTexto("Novo nome [" + existente.getNome() + "]: ");
-        if (novoNome.isEmpty()) novoNome = existente.getNome();
+            String novoCodigo = InputsAuxiliares.lerTexto("Novo código [" + existente.getCodigo() + "]: ");
+            if (novoCodigo.isEmpty()) {
+                novoCodigo = existente.getCodigo();
+            }
 
-        Especialidade atualizada = new Especialidade(novoCodigo, novoNome);
+            String novoNome = InputsAuxiliares.lerTexto("Novo nome [" + existente.getNome() + "]: ");
+            if (novoNome.isEmpty()) {
+                novoNome = existente.getNome();
+            }
 
-        if (gestaoHospital.atualizarEspecialidade(codigo, atualizada)) {
-            InputsAuxiliares.imprimirSucesso("Especialidade atualizada com sucesso!");
-        } else {
-            InputsAuxiliares.imprimirErro("Erro ao atualizar especialidade.");
+            Especialidade atualizada = new Especialidade(novoCodigo, novoNome);
+
+            if (gestaoHospital.atualizarEspecialidade(codigo, atualizada)) {
+                InputsAuxiliares.imprimirSucesso("Especialidade atualizada com sucesso!");
+            } else {
+                InputsAuxiliares.imprimirErro("Erro ao atualizar especialidade.");
+            }
+            InputsAuxiliares.pausar();
+        } catch (InputsAuxiliares.OperacaoCanceladaException e) {
+            System.out.println("<< Operacao cancelada pelo utilizador.");
+            InputsAuxiliares.pausar();
         }
     }
 
     private void removerEspecialidade(GestaoHospital gestaoHospital) {
-        System.out.println("\n  REMOVER ESPECIALIDADE");
-        System.out.println("-".repeat(30));
+        InputsAuxiliares.imprimirCabecalho("REMOVER ESPECIALIDADE");
+        InputsAuxiliares.exibirMsgCancelar();
 
-        String codigo = InputsAuxiliares.lerTextoNaoVazio("Código da especialidade a remover: ");
+        try {
+            if (InputsAuxiliares.confirmar("Deseja remover especialidades existente?")){
+                System.out.println();
+                gestaoHospital.listarEspecialidades();
+                System.out.println();
+            }
 
-        if (!InputsAuxiliares.confirmar("Tem a certeza que deseja remover esta especialidade?")) {
-            System.out.println("Operação cancelada.");
-            return;
-        }
+            String codigo = InputsAuxiliares.lerTextoComCancelamento("Código da especialidade a remover: ");
 
-        if (gestaoHospital.removerEspecialidade(codigo)) {
-            InputsAuxiliares.imprimirSucesso("Especialidade removida com sucesso!");
-        } else {
-            InputsAuxiliares.imprimirErro("Erro ao remover especialidade (não encontrada?).");
+            if (!InputsAuxiliares.confirmar("Tem a certeza que deseja remover esta especialidade?")) {
+                System.out.println("Operação cancelada.");
+                InputsAuxiliares.pausar();
+                return;
+            }
+
+            if (gestaoHospital.removerEspecialidade(codigo)) {
+                InputsAuxiliares.imprimirSucesso("Especialidade removida com sucesso!");
+            } else {
+                InputsAuxiliares.imprimirErro("Erro ao remover especialidade (não encontrada?).");
+            }
+            InputsAuxiliares.pausar();
+        }catch (InputsAuxiliares.OperacaoCanceladaException e) {
+            System.out.println("<< Operacao cancelada pelo utilizador.");
+            InputsAuxiliares.pausar();
         }
     }
 }

@@ -66,3 +66,18 @@
 2026-01-24T20:49:29.202999400 - Sistema iniciado - Dia 1
 2026-01-24T20:57:37.284918800 - Sistema iniciado - Dia 1
 2026-01-24T21:47:53.874562 - Sistema iniciado - Dia 1
+2026-01-25T14:14:47.650803100 - Sistema iniciado - Dia 1
+2026-01-25T14:46:57.667138300 - Sistema iniciado - Dia 1
+2026-01-25T16:21:05.755264700 - Sistema iniciado - Dia 1
+2026-01-25T16:49:27.389645600 - Sistema iniciado - Dia 1
+2026-01-25T16:50:55.933729400 - Sistema iniciado - Dia 1
+2026-01-25T16:52:14.074772200 - Sistema iniciado - Dia 1
+2026-01-25T16:59:27.674386200 - Especialidade removida: CARD
+2026-01-25T17:04:44.144176600 - Especialidade adicionada: Cardiologia
+2026-01-25T17:05:46.447155500 - Sintoma adicionado: Dores
+2026-01-25T17:06:12.685202200 - Sintoma adicionado: Unha dorida
+2026-01-25T17:07:37.944290200 - Sintoma atualizado: Dor no Peito
+2026-01-25T17:10:31.570569800 - Paciente registado: Sr joao - Urgência: Urgente
+2026-01-25T17:11:10.503196800 - Paciente registado: D Maria - Urgência: Baixa
+2026-01-25T17:13:20.725584400 - Paciente registado: sr carlos - Urgência: Urgente
+2026-01-25T17:14:29.932898800 - Histórico: Consulta terminada - sr carlos

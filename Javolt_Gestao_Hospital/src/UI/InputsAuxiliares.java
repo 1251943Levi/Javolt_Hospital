@@ -1,30 +1,12 @@
 package UI;
 
 import java.util.Scanner;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 public class InputsAuxiliares {
     private static final Scanner scanner = new Scanner(System.in);
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
     // ================== MÉTODOS BÁSICOS ==================
-
-    /**
-     * Lê opção do menu com validação
-     */
-    public static int lerOpcaoMenu(String msg) {
-        System.out.print(msg);
-        while (!scanner.hasNextInt()) {
-            System.out.println(">> Valor inválido. Insira um número.");
-            scanner.next();
-            System.out.print(msg);
-        }
-        int valor = scanner.nextInt();
-        scanner.nextLine();
-        return valor;
-    }
 
     /**
      * Lê texto simples
@@ -46,6 +28,34 @@ public class InputsAuxiliares {
                 imprimirErro("O campo não pode estar vazio.");
                 continue;
             }
+            return input;
+        }
+    }
+
+    /**
+     * Lê texto (String) com validação de vazio e cancelamento.
+     */
+    public static String lerTextoComCancelamento(String msg) throws OperacaoCanceladaException {
+        while (true) {
+            System.out.print(msg);
+            String input = scanner.nextLine();
+
+            // Verifica se é "0" para cancelamento COM confirmação
+            if (input.trim().equals("0")) {
+                System.out.print("\n>> Deseja cancelar a operação? (S/N): ");
+                String confirmacao = scanner.nextLine();
+                if (confirmacao.equalsIgnoreCase("S")) {
+                    throw new OperacaoCanceladaException();
+                }
+                imprimirAviso("Operação retomada. Continue a inserir dados.");
+                continue; // Continua pedindo input
+            }
+
+            if (input.trim().isEmpty()) {
+                imprimirErro("O campo não pode estar vazio.");
+                continue;
+            }
+
             return input;
         }
     }
@@ -76,6 +86,31 @@ public class InputsAuxiliares {
     }
 
     /**
+     * Lê número inteiro com cancelamento.
+     */
+    public static int lerInteiroComCancelamento(String msg) throws OperacaoCanceladaException {
+        while (true) {
+            System.out.print(msg);
+            String input = scanner.nextLine();
+
+            if (input.trim().equals("0")) {
+                System.out.print("\n>> Deseja cancelar a operação? (S/N): ");
+                if (scanner.nextLine().equalsIgnoreCase("S")) {
+                    throw new OperacaoCanceladaException();
+                }
+                imprimirAviso("Operação retomada. Continue a inserir dados.");
+                continue;
+            }
+
+            try {
+                return Integer.parseInt(input.trim());
+            } catch (NumberFormatException e) {
+                imprimirErro("Valor inválido. Insira um número inteiro.");
+            }
+        }
+    }
+
+    /**
      * Lê inteiro dentro de intervalo
      */
     public static int lerInteiroIntervalo(String msg, int min, int max) {
@@ -84,7 +119,8 @@ public class InputsAuxiliares {
                 System.out.print(msg);
                 int v = Integer.parseInt(scanner.nextLine());
                 if (v >= min && v <= max) return v;
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             imprimirErro("Valor inválido.");
         }
     }
@@ -112,23 +148,37 @@ public class InputsAuxiliares {
         }
     }
 
-    // ================== LEITURA DE CARACTERES ==================
 
     /**
-     * Lê um único caractere
+     * Lê número decimal (Double) com cancelamento.
+     * Necessário para Salários/Valor Hora.
      */
-    public static char lerChar(String msg) {
+    public static double lerDoubleComCancelamento(String msg) throws OperacaoCanceladaException {
         while (true) {
             System.out.print(msg);
-            String input = scanner.nextLine().trim();
+            String input = scanner.nextLine();
 
-            if (input.length() == 1) {
-                return input.charAt(0);
+            if (input.trim().equals("0")) {
+                System.out.print("\n>> Deseja cancelar a operação? (S/N): ");
+                if (scanner.nextLine().equalsIgnoreCase("S")) {
+                    throw new OperacaoCanceladaException();
+                }
+                imprimirAviso("Operação retomada. Continue a inserir dados.");
+                continue;
             }
 
-            imprimirErro("Insira apenas um caractere.");
+            try {
+                // Substitui vírgula por ponto para evitar erros de locale
+                return Double.parseDouble(input.trim().replace(",", "."));
+            } catch (NumberFormatException e) {
+                imprimirErro("Valor inválido. Insira um número decimal (ex: 10.5).");
+            }
         }
     }
+
+
+    // ================== LEITURA DE CARACTERES ==================
+
 
     /**
      * Lê caractere separador (ex: ; , | TAB)
@@ -156,28 +206,6 @@ public class InputsAuxiliares {
             }
 
             imprimirErro("Separador inválido. Use ; , | ou TAB");
-        }
-    }
-
-    // ================== LEITURA DE DATAS ==================
-
-    /**
-     * Lê data e hora
-     */
-    public static LocalDateTime lerData(String msg) {
-        while (true) {
-            System.out.print(msg + " (formato: dd-MM-yyyy HH:mm, 0 para cancelar): ");
-            String input = scanner.nextLine().trim();
-
-            if (input.equals("0")) {
-                return null; // Cancelar
-            }
-
-            try {
-                return LocalDateTime.parse(input, dateTimeFormatter);
-            } catch (DateTimeParseException e) {
-                imprimirErro("Formato inválido. Use dia-mes-ano hora:minuto");
-            }
         }
     }
 
@@ -237,9 +265,6 @@ public class InputsAuxiliares {
         System.out.println("|");
     }
 
-    public static void imprimirTitulo(String titulo) {
-        System.out.println("\n--- " + titulo.toUpperCase() + " ---");
-    }
 
     public static void exibirMsgCancelar() {
         System.out.println("(Prima 0 em qualquer momento para cancelar)");
@@ -268,28 +293,9 @@ public class InputsAuxiliares {
         scanner.nextLine();
     }
 
-    // ================== MÉTODOS COMPATIBILIDADE ==================
-
-    /**
-     * Método compatível com Menu.java (ler int simples)
-     */
-    public static int lerInt(String msg) {
-        return lerInteiro(msg);
+    public static class OperacaoCanceladaException extends Exception {
+        public OperacaoCanceladaException() {
+            super("Operação cancelada pelo utilizador.");
+        }
     }
-
-    /**
-     * Método compatível com Menu.java (ler string simples)
-     */
-    public static String lerString(String msg) {
-        return lerTexto(msg);
-    }
-
-    /**
-     * Método compatível para pausa no Menu
-     */
-    public static void pausa() {
-        pausar();
-    }
-
-
 }

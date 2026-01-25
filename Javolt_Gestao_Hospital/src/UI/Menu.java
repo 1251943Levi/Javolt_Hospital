@@ -134,7 +134,10 @@ public class Menu {
 
             switch (opcao) {
                 case 1 -> gestaoHospital.mediaPacientesDia();
-                case 2 -> gestaoHospital.tabelaSalarios();
+                case 2 -> {
+                    gestaoHospital.tabelaSalarios();
+                    InputsAuxiliares.pausar();
+                }
                 case 3 -> gestaoHospital.topEspecialidades();
                 case 4 -> gestaoHospital.listarUtentesPorSintoma();
                 case 0 -> { /* Voltar */ }
@@ -165,9 +168,8 @@ public class Menu {
                 case 2 -> gestaoHospital.alterarSeparador();
                 case 3 -> gestaoHospital.alterarTemposConsulta();
                 case 4 -> {
-                    System.out.println("\n CONFIGURAÇÃO ATUAL:");
-                    // Aqui poderia mostrar configuração se houver método
-                    System.out.println(" Método toString() da Configuracao em desenvolvimento...");
+                    System.out.println();
+                    System.out.println(gestaoHospital.getConfiguracaoTexto());
                 }
                 case 0 -> { /* Voltar */ }
                 default -> InputsAuxiliares.imprimirErro("Opção inválida.");
