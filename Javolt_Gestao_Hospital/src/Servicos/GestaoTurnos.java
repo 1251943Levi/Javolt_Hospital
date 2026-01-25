@@ -138,11 +138,6 @@ public class GestaoTurnos {
             boolean turnoValido = unidadeTempoAtual >= m.getHoraEntrada() && unidadeTempoAtual < m.getHoraSaida();
             if (!turnoValido) continue;
 
-            // comentado so para testes nada defenitivo
-            if (m.getHorasTrabalhoContinuo() == 0 && m.getHorasTrabalhadas() > 0) {
-                continue;
-            }
-
             int indexPaciente = encontrarMelhorPaciente(fila, m.getEspecialidade());
 
             if (indexPaciente != -1) {
@@ -224,5 +219,29 @@ public class GestaoTurnos {
         if (!adicionado) {
             System.out.println("ERRO CRITICO: Limite de consultas simultaneas atingido!");
         }
+    }
+
+    public void mostrarConsultasAtivas() {
+        System.out.println("\n--- CONSULTAS A DECORRER (Tempo atual: " + unidadeTempoAtual + "h) ---");
+        boolean haConsultas = false;
+
+        for (Consulta c : consultasAtivas) {
+            if (c != null) {
+                haConsultas = true;
+                // Cálculo da barra de progresso simples
+                int tempoPassado = c.getTempoTotal() - c.getTempoRestante();
+                System.out.printf("Dr. %-15s -> Paciente: %-15s | Restam: %d UTs | Progresso: [%d/%d]%n",
+                        c.getMedico().getNome(),
+                        c.getPaciente().getNome(),
+                        c.getTempoRestante(),
+                        tempoPassado,
+                        c.getTempoTotal());
+            }
+        }
+
+        if (!haConsultas) {
+            System.out.println(">> Não existem consultas a decorrer neste momento.");
+        }
+        System.out.println("----------------------------------------------------------------");
     }
 }

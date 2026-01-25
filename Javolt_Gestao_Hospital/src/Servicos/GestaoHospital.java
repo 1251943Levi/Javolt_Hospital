@@ -67,7 +67,7 @@ public class GestaoHospital {
             }
 
             // Carregar médicos
-            Medico[] medLidos = leitor.lerMedicos(caminho + "medicos.txt");
+            Medico[] medLidos = leitor.lerMedicos(caminho + "medicos.txt", this.especialidades);
             if (medLidos != null) {
                 for (Medico m : medLidos) {
                     if (m != null && totalMedicos < medicos.length)
@@ -188,6 +188,10 @@ public class GestaoHospital {
     public void topEspecialidades() {
         ConsultaEstatistica.mostrarTopEspecialidades(especialidades, totalEspecialidades,
                 pacientes, totalPacientes);
+    }
+
+    public void listarUtentesPorSintoma() {
+        ConsultaEstatistica.mostrarUtentesPorSintoma(pacientes, totalPacientes, sintomas, totalSintomas);
     }
 
     // ================== GESTÃO DE MÉDICOS ==================
@@ -439,6 +443,14 @@ public class GestaoHospital {
             }
         }
         return false;
+    }
+
+    public void listarConsultasEmCurso() {
+        if (gestorDeTurnos != null) {
+            gestorDeTurnos.mostrarConsultasAtivas();
+        } else {
+            System.out.println("ERRO: Gestor de turnos não inicializado.");
+        }
     }
 
     // ================== GESTÃO DE SINTOMAS ==================
