@@ -32,6 +32,11 @@ public class GestaoTurnos {
     }
 
     public void avancarUnidadeTempo() {
+        for (Medico m : gestaoHospital.getListaMedicos()){
+            if (m != null && m.estaDeFolga()){
+                m.decrementarDescanso();
+            }
+        }
         System.out.println("\n--------------------------------------------------");
         System.out.println(" RELOGIO AVANCOU: " + unidadeTempoAtual + "h -> " + (unidadeTempoAtual + 1) + "h (Dia " + diasDecorridos + ")");
         System.out.println("--------------------------------------------------");
@@ -90,6 +95,7 @@ public class GestaoTurnos {
                 if (m.getHorasTrabalhoContinuo() >= 5) {
                     System.out.println("PAUSA OBRIGATORIA: Dr. " + m.getNome() + " trabalhou 5h seguidas.");
                     m.resetarHorasContinuo();
+                    m.definirDescanso(1);
                 }
             }
         }
@@ -133,7 +139,7 @@ public class GestaoTurnos {
         for (Medico m : medicos) {
             if (m == null) continue;
 
-            if (!m.isDisponivel()) continue;
+            if (!m.isDisponivel() || m.estaDeFolga()) continue;
 
             boolean turnoValido = unidadeTempoAtual >= m.getHoraEntrada() && unidadeTempoAtual < m.getHoraSaida();
             if (!turnoValido) continue;
