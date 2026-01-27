@@ -1,4 +1,4 @@
-João Martins;CARD;8;16;45.00
-Maria Silva;PEDI;9;17;40.00
-António Ferreira;ORTO;10;18;50.00
-Pedro Gomes;CARD;12;20;47.00
+João Martins;Cardiologia;8;16;45.00
+Maria Silva;Pediatria;9;17;40.00
+António Ferreira;Ortopedia;10;18;50.00
+Pedro Gomes;Cardiologia;12;20;47.00

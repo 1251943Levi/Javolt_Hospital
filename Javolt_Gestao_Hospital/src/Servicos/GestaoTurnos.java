@@ -160,50 +160,61 @@ public class GestaoTurnos {
     }
 
     private int encontrarMelhorPaciente(Paciente[] fila, String especialidadeMedico) {
+        String codigoMedico = especialidadeMedico.trim();
 
-        //  Procurar URGENTES
+        // 1. PRIMEIRO: Procurar URGENTES
         for (int i = 0; i < fila.length; i++) {
             Paciente p = fila[i];
-            if (p == null) continue;
-            if (p.isEmAtendimento()) continue;
-
+            if (p == null || p.isEmAtendimento()) continue;
             if (p.getEspecialidadeDesejada() == null) continue;
 
-            if (p.getEspecialidadeDesejada().equalsIgnoreCase(especialidadeMedico)
-                    && p.getNivelUrgencia().equalsIgnoreCase("Urgente")) {
+            String espPaciente = p.getEspecialidadeDesejada().trim();
+
+            // Verifica se é Match Exato OU se é Clinica Geral (que entra em qualquer lado)
+            boolean match = espPaciente.equalsIgnoreCase(codigoMedico) ||
+                    espPaciente.equalsIgnoreCase("Clinica Geral") ||
+                    espPaciente.equalsIgnoreCase("Clínica Geral");
+
+            if (match && p.getNivelUrgencia().equalsIgnoreCase("Urgente")) {
+                return i; // Encontrou um urgente, devolve logo!
+            }
+        }
+
+        // 2. SEGUNDO: Procurar MÉDIOS
+        for (int i = 0; i < fila.length; i++) {
+            Paciente p = fila[i];
+            if (p == null || p.isEmAtendimento()) continue;
+            if (p.getEspecialidadeDesejada() == null) continue;
+
+            String espPaciente = p.getEspecialidadeDesejada().trim();
+
+            boolean match = espPaciente.equalsIgnoreCase(codigoMedico) ||
+                    espPaciente.equalsIgnoreCase("Clinica Geral") ||
+                    espPaciente.equalsIgnoreCase("Clínica Geral");
+
+            if (match && p.getNivelUrgencia().equalsIgnoreCase("Média")) {
                 return i;
             }
         }
 
-        // 2Procurar MÉDIOS
+        // 3. TERCEIRO: Procurar BAIXOS
         for (int i = 0; i < fila.length; i++) {
             Paciente p = fila[i];
-            if (p == null) continue;
-            if (p.isEmAtendimento()) continue;
-
+            if (p == null || p.isEmAtendimento()) continue;
             if (p.getEspecialidadeDesejada() == null) continue;
 
-            if (p.getEspecialidadeDesejada().equalsIgnoreCase(especialidadeMedico)
-                    && p.getNivelUrgencia().equalsIgnoreCase("Média")) {
+            String espPaciente = p.getEspecialidadeDesejada().trim();
+
+            boolean match = espPaciente.equalsIgnoreCase(codigoMedico) ||
+                    espPaciente.equalsIgnoreCase("Clinica Geral") ||
+                    espPaciente.equalsIgnoreCase("Clínica Geral");
+
+            if (match && p.getNivelUrgencia().equalsIgnoreCase("Baixa")) {
                 return i;
             }
         }
 
-        //  Procurar BAIXOS
-        for (int i = 0; i < fila.length; i++) {
-            Paciente p = fila[i];
-            if (p == null) continue;
-            if (p.isEmAtendimento()) continue;
-
-            if (p.getEspecialidadeDesejada() == null) continue;
-
-            if (p.getEspecialidadeDesejada().equalsIgnoreCase(especialidadeMedico)
-                    && p.getNivelUrgencia().equalsIgnoreCase("Baixa")) {
-                return i;
-            }
-        }
-
-        return -1; // nenhum paciente encontrado
+        return -1; // Ninguém encontrado
     }
 
 
