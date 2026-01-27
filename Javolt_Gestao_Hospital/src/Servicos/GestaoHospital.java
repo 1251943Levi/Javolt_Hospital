@@ -48,8 +48,7 @@ public class GestaoHospital {
         gestor = new GestorFicheiros(String.valueOf(configuracao.getSeparador()));
         this.gestorDeTurnos = new GestaoTurnos(this);
         carregarDadosIniciais();
-        gestor.escreverLog("logs.txt", "Sistema iniciado - Dia " + gestorDeTurnos.getDiasDecorridos());
-    }
+        gestor.escreverLog(configuracao.getCaminhoFicheiros() + "logs.txt", "Sistema iniciado - Dia " + gestorDeTurnos.getDiasDecorridos());    }
 
     // ================== CARREGAMENTO DE DADOS ==================
     private void carregarDadosIniciais() {
