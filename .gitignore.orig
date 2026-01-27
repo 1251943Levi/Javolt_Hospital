@@ -2,6 +2,10 @@
 /Javolt_Gestao_Hospital/Recursos/configuracao.txt
 /Javolt_Gestao_Hospital/Recursos/pacientes_historico.txt
 /Javolt_Gestao_Hospital/logs.txt
+<<<<<<< HEAD
+/Javolt_Gestao_Hospital/.idea/IntelliLang.xml
+=======
 /Javolt_Gestao_Hospital/.idea/misc.xml
 /Javolt_Gestao_Hospital/.idea/IntelliLang.xml
 /Javolt_Gestao_Hospital/.idea/misc.xml
+>>>>>>> main
